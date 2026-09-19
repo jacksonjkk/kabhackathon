@@ -22,6 +22,7 @@ from simulate_iot import API
 
 START_TEMP = 39.2
 END_TEMP = 40.6
+ACTIVITY = 5.0
 POINTS = 8
 STEP_MIN = 15
 
@@ -33,6 +34,14 @@ def main():
     ap.add_argument("--base-url", default="http://localhost:4000")
     ap.add_argument("--tag", default="SIM-004")
     ap.add_argument("--points", type=int, default=POINTS)
+    ap.add_argument("--start-temp", type=float, default=START_TEMP)
+    ap.add_argument("--end-temp", type=float, default=END_TEMP,
+                    help="final temp; 41.5 = near-death critical")
+    ap.add_argument("--activity", type=float, default=ACTIVITY,
+                    help="movement level; ~1 = immobile")
+    ap.add_argument("--span-hours", type=float, default=None,
+                    help="spread readings over this many hours (fills the model's "
+                         "6h/24h windows with abnormal data so the AI fires too)")
     args = ap.parse_args()
 
     api = API(args.base_url)
@@ -45,16 +54,17 @@ def main():
     cow = match[0]
 
     print(f"Driving {args.tag} into fever ({args.points} readings, "
-          f"{START_TEMP}->{END_TEMP}C, activity collapsed):")
+          f"{args.start_temp}->{args.end_temp}C, activity collapsed):")
     now = datetime.now(timezone.utc)
+    span_min = args.span_hours * 60 if args.span_hours else STEP_MIN * (args.points - 1)
     emailed = False
     for i in range(args.points):
-        temp = round(START_TEMP + (END_TEMP - START_TEMP) * i / max(args.points - 1, 1), 2)
-        ts = (now - timedelta(minutes=STEP_MIN * (args.points - 1 - i))).isoformat()
+        temp = round(args.start_temp + (args.end_temp - args.start_temp) * i / max(args.points - 1, 1), 2)
+        ts = (now - timedelta(minutes=span_min * (args.points - 1 - i) / max(args.points - 1, 1))).isoformat()
         res = api.send_reading({
             "cattleId": cow["id"],
             "temperatureC": temp,
-            "activityLevel": 5.0,
+            "activityLevel": args.activity,
             "deviceId": "FORCE-ALERT",
             "capturedAt": ts,
         })
