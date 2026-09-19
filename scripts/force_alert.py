@@ -42,6 +42,11 @@ def main():
     ap.add_argument("--span-hours", type=float, default=None,
                     help="spread readings over this many hours (fills the model's "
                          "6h/24h windows with abnormal data so the AI fires too)")
+    ap.add_argument("--baseline-points", type=int, default=0,
+                    help="normal readings to lay down FIRST over the 24h before the "
+                         "ramp. The model detects DEVIATION from baseline — a cow "
+                         "that has only ever been hot looks 'normal' to it. "
+                         "Use ~12 for an ML ABNORMAL demo.")
     args = ap.parse_args()
 
     api = API(args.base_url)
@@ -58,21 +63,34 @@ def main():
     now = datetime.now(timezone.utc)
     span_min = args.span_hours * 60 if args.span_hours else STEP_MIN * (args.points - 1)
     emailed = False
-    for i in range(args.points):
-        temp = round(args.start_temp + (args.end_temp - args.start_temp) * i / max(args.points - 1, 1), 2)
-        ts = (now - timedelta(minutes=span_min * (args.points - 1 - i) / max(args.points - 1, 1))).isoformat()
+
+    def send(temp, act, ts, label):
+        nonlocal emailed
         res = api.send_reading({
             "cattleId": cow["id"],
             "temperatureC": temp,
-            "activityLevel": args.activity,
+            "activityLevel": act,
             "deviceId": "FORCE-ALERT",
             "capturedAt": ts,
         })
-        print(f"  {temp}C -> prediction={res.get('prediction')} "
+        print(f"  {label} {temp}C act={act} -> prediction={res.get('prediction')} "
               f"score={res.get('anomalyScore')} risk={res.get('riskLevel')} "
               f"alertCreated={res.get('alertCreated')}")
         emailed = emailed or bool(res.get("alertCreated"))
         time.sleep(0.5)
+
+    ramp_start = now - timedelta(minutes=span_min)
+    if args.baseline_points > 0:
+        print(f"Laying {args.baseline_points} healthy baseline readings over 24h first...")
+        base_start = ramp_start - timedelta(hours=24)
+        for i in range(args.baseline_points):
+            ts = (base_start + timedelta(hours=24 * i / max(args.baseline_points - 1, 1))).isoformat()
+            send(38.5, 40.0, ts, "base")
+
+    for i in range(args.points):
+        temp = round(args.start_temp + (args.end_temp - args.start_temp) * i / max(args.points - 1, 1), 2)
+        ts = (now - timedelta(minutes=span_min * (args.points - 1 - i) / max(args.points - 1, 1))).isoformat()
+        send(temp, args.activity, ts, "fever")
 
     if emailed:
         print("\nAlert fired — email is on its way. Check the inbox (and spam).")
