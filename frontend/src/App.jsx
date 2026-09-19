@@ -24,6 +24,7 @@ import FarmMap from './pages/dashboard/FarmMap'
 import Inventory from './pages/dashboard/Inventory'
 import CowProfile from './pages/dashboard/CowProfile'
 import Settings from './pages/dashboard/Settings'
+import NotFound from './pages/NotFound'
 import RequireAuth from './context/RequireAuth'
 
 // REVISED scope: sidebar exposes only Dashboard / Herd / Health Monitoring / Early Warnings / Cow / Settings.
@@ -53,6 +54,7 @@ export default function App() {
       <Route path="/role" element={<ChooseRole />} />
       <Route path="/farm-setup" element={<FarmSetup />} />
       <Route path="/preferences" element={<Preferences />} />
+      <Route path="*" element={<NotFound />} />
 
       <Route element={<RequireAuth />}>
         <Route path="/dashboard" element={<Dashboard />} />
