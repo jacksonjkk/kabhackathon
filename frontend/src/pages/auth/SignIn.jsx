@@ -90,8 +90,8 @@ export default function SignIn() {
         })}
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="relative z-10 pt-20 pb-10">
-        <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-6 sm:p-10 w-full max-w-[440px] shadow-2xl border border-white/50 text-center">
+      <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} className="relative z-10 w-full flex justify-center px-4 pt-20 pb-10">
+        <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-6 sm:p-10 w-full max-w-[440px] mx-auto shadow-2xl border border-white/50 text-center">
           <div className="flex justify-center mb-4">
             <img src={logo} alt="BoviPulse logo" className="w-12 h-12 rounded-full object-cover bg-white" />
           </div>
