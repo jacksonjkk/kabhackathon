@@ -72,7 +72,8 @@ class API:
         r = self.s.get(f"{self.base}/api/farms/me")
         if r.status_code == 200:
             return r.json()
-        r = self.s.post(f"{self.base}/api/farms", json={"name": "Demo Farm", "location": "Kabale"})
+        r = self.s.post(f"{self.base}/api/farms", json={"name": "Demo Farm", "location": "Kabale",
+                                                              "latitude": -1.25, "longitude": 29.99})
         r.raise_for_status()
         return r.json()
 

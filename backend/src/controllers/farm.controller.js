@@ -7,6 +7,11 @@ import { requireFarm, canManageFarm } from "../lib/farmScope.js";
 const farmSchema = z.object({
   name: z.string().trim().min(2).max(100),
   location: z.string().trim().max(160).nullish(),
+  // GPS is mandatory: weather backfill has no fallback town, so a farm
+  // without coordinates would silently degrade every ML decision.
+  // (Update uses .partial(), so existing farms add GPS via Settings.)
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
   sizeHectares: z.number().nonnegative().max(10_000_000).nullish(),
   capacity: z.number().int().positive().max(1_000_000).nullish(),
 });

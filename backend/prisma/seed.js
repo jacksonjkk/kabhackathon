@@ -50,6 +50,8 @@ async function main() {
     data: {
       name: "Green Pastures Dairy",
       location: "Chilanga District, Lusaka Province",
+      latitude: -15.55,
+      longitude: 28.28,
       sizeHectares: 42.5,
       capacity: 120,
       ownerId: owner.id,

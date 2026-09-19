@@ -1,20 +1,39 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ChevronRight, ArrowLeft } from 'lucide-react'
+import { ChevronRight, ArrowLeft, MapPin } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { farmApi } from '../../api/client'
+import { askBrowserLocation } from '../../api/weather'
 
 export default function FarmSetup() {
   const navigate = useNavigate()
   const { register } = useAuth()
-  const [form, setForm] = useState({ farmName: '', herdSize: '', location: '' })
+  const [form, setForm] = useState({ farmName: '', herdSize: '', location: '', latitude: '', longitude: '' })
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [locating, setLocating] = useState(false)
   const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
+  // Google-style: browser asks for permission, then GPS fills in automatically.
+  const useMyLocation = async () => {
+    setError('')
+    setLocating(true)
+    try {
+      const { latitude, longitude } = await askBrowserLocation()
+      setForm(f => ({ ...f, latitude: String(latitude.toFixed(4)), longitude: String(longitude.toFixed(4)) }))
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLocating(false)
+    }
+  }
   const handleSubmit = async e => {
     e.preventDefault()
     setError('')
+    if (form.latitude.trim() === '' || form.longitude.trim() === '') {
+      setError('Farm GPS is required — tap "Use my current location" or enter coordinates for weather data.')
+      return
+    }
     const herdSize = Number.parseInt(form.herdSize, 10)
     if (!Number.isFinite(herdSize) || herdSize < 1) {
       setError('Enter your herd size as a whole number of 1 or more.')
@@ -30,6 +49,8 @@ export default function FarmSetup() {
         name: form.farmName.trim(),
         location: form.location.trim() || null,
         capacity: herdSize,
+        latitude: form.latitude.trim() === '' ? null : Number(form.latitude),
+        longitude: form.longitude.trim() === '' ? null : Number(form.longitude),
       })
       sessionStorage.removeItem('bovipulse_signup')
       sessionStorage.removeItem('bovipulse_role')
@@ -80,6 +101,22 @@ export default function FarmSetup() {
                 <input name="location" value={form.location} onChange={handleChange} placeholder="e.g. Kabale, Uganda"
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:border-green-500 focus:bg-white focus:ring-3 focus:ring-green-500/15 transition-all" />
               </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-gray-700">Latitude <span className="font-normal text-gray-400">(required, for weather)</span></label>
+                  <input name="latitude" value={form.latitude} onChange={handleChange} type="number" step="any" min="-90" max="90" placeholder="e.g. -1.28" required
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:border-green-500 focus:bg-white focus:ring-3 focus:ring-green-500/15 transition-all" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-gray-700">Longitude <span className="font-normal text-gray-400">(required, for weather)</span></label>
+                  <input name="longitude" value={form.longitude} onChange={handleChange} type="number" step="any" min="-180" max="180" placeholder="e.g. 29.98" required
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:border-green-500 focus:bg-white focus:ring-3 focus:ring-green-500/15 transition-all" />
+                </div>
+              </div>
+              <button type="button" onClick={useMyLocation} disabled={locating}
+                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-green-200 bg-green-50 text-green-800 text-sm font-semibold hover:bg-green-100 transition-all cursor-pointer disabled:opacity-60">
+                <MapPin size={16} /> {locating ? 'Locating…' : 'Use my current location'}
+              </button>
               {error && <p className="text-xs text-red-600" role="alert">{error}</p>}
               <button type="submit" disabled={submitting} className="flex items-center justify-center gap-2 w-full py-3.5 bg-green-700 text-white text-sm font-bold rounded-xl hover:bg-green-800 transition-all hover:shadow-md active:scale-[0.97] mt-2 cursor-pointer disabled:opacity-60">
                 {submitting ? 'Setting Up...' : 'Continue'} {!submitting && <ChevronRight size={18} />}

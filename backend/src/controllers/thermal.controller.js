@@ -6,6 +6,7 @@ import { requireFarm } from "../lib/farmScope.js";
 import { env } from "../config/env.js";
 import { getPagination, paginated } from "../lib/pagination.js";
 import { createAlert, SEVERITY_ORDER } from "../services/alert.service.js";
+import { getFarmWeather } from "../services/weather.service.js";
 
 const DAY_MS = 86_400_000;
 // Suppress duplicate early warnings for the same animal for 6 hours unless severity escalates.
@@ -369,13 +370,39 @@ export const createReading = asyncHandler(async (req, res) => {
 
   const fallback = fallbackClassify(data.temperatureC);
 
+  // Location-aware weather backfill: collars often send only body temp +
+  // activity, leaving ambientC/humidity empty — which would force the ML
+  // service onto fixed 24C/65% defaults and flatten THI/heat_index. Fill
+  // ONLY the missing fields from Open-Meteo (requires farm GPS; no
+  // fallback location), never overwriting a real sensor value. Sources
+  // persist for dashboard badges.
+  let ambientC = data.ambientC ?? null;
+  let humidity = data.humidity ?? null;
+  let ambientSource = data.ambientC != null ? "SENSOR" : null;
+  let humiditySource = data.humidity != null ? "SENSOR" : null;
+  if (ambientC == null || humidity == null) {
+    const weather = await getFarmWeather(farm);
+    if (weather) {
+      if (ambientC == null && weather.ambientC != null) {
+        ambientC = weather.ambientC;
+        ambientSource = "WEATHER";
+      }
+      if (humidity == null && weather.humidity != null) {
+        humidity = weather.humidity;
+        humiditySource = "WEATHER";
+      }
+    }
+  }
+
   const reading = await prisma.thermalReading.create({
     data: {
       cattleId: cattle.id,
       temperatureC: data.temperatureC,
-      ambientC: data.ambientC ?? null,
+      ambientC,
       activityLevel: data.activityLevel ?? null,
-      humidity: data.humidity ?? null,
+      humidity,
+      ambientSource,
+      humiditySource,
       deviceId: data.deviceId ?? null,
       imageUrl: data.imageUrl ?? null,
       capturedAt: data.capturedAt ?? new Date(),
@@ -414,6 +441,12 @@ export const createReading = asyncHandler(async (req, res) => {
           label: scored.label,
           anomalyScore: scored.anomalyScore ?? null,
           modelVersion: scored.modelVersion ?? "external-v1",
+          featuresJson: JSON.stringify({
+            ambientC: reading.ambientC,
+            humidity: reading.humidity,
+            ambientSource,
+            humiditySource,
+          }),
         },
       });
       await prisma.thermalReading.update({

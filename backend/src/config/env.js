@@ -45,4 +45,12 @@ export const env = {
   // Lameness screen active-hours gate (night rest must never flag).
   lamenessActiveStart: toFloat(process.env.LAMENESS_ACTIVE_START, 5),
   lamenessActiveEnd: toFloat(process.env.LAMENESS_ACTIVE_END, 20),
+  // Location-aware weather backfill (Open-Meteo, no key). When a collar
+  // reading arrives without ambientC/humidity, the backend fills the gap
+  // from the farm's coordinates so the ML features (THI, heat_index) stay
+  // meaningful instead of falling back to fixed defaults. WEATHER_ENABLED=false
+  // disables all outbound weather calls (offline deployments).
+  weatherEnabled: (process.env.WEATHER_ENABLED ?? "true").toLowerCase() !== "false",
+  weatherCacheTtlMs: toInt(process.env.WEATHER_CACHE_TTL_S, 900) * 1000,
+  weatherTimeoutMs: toInt(process.env.WEATHER_TIMEOUT_MS, 4000),
 };

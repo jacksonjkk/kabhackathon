@@ -32,6 +32,10 @@ model Farm {
   id            String   @id @default(cuid())
   name          String
   location      String?
+  // GPS for location-aware weather backfill (Open-Meteo). Null = use
+  // WEATHER_DEFAULT_LAT/LON until the farmer sets coordinates.
+  latitude      Float?
+  longitude     Float?
   sizeHectares  Float?
   capacity      Int?
   members       User[]   @relation("ActiveFarm")
@@ -136,6 +140,11 @@ model ThermalReading {
   activityLevel Float?
   humidity      Float?
   deviceId      String?
+  // Where ambient values came from: SENSOR (collar sent it), WEATHER
+  // (backfilled from Open-Meteo for this farm's coordinates), or null
+  // (no source — inference service used its training defaults).
+  ambientSource  String?
+  humiditySource String?
   anomaly     Boolean  @default(false)
   riskLevel   String   @default("LOW")
   // ML decision-support fields, written by the external model via POST /thermaguard/predictions
