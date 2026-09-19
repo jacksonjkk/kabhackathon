@@ -18,6 +18,12 @@ model User {
   farmId       String?
   farm         Farm?    @relation("ActiveFarm", fields: [farmId], references: [id])
   ownedFarm    Farm?    @relation("Ownership")
+  language     String   @default("en")
+  units        String   @default("metric")
+  alertsEnabled     Boolean @default(true)
+  trendsEnabled     Boolean @default(true)
+  monitoringEnabled Boolean @default(true)
+  notesEnabled      Boolean @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }

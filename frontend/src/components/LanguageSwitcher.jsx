@@ -1,11 +1,18 @@
 import { useTranslation } from 'react-i18next'
 import { Globe } from 'lucide-react'
 import { LANGS, setLanguage, isDraft } from '../i18n'
+import { useAuth } from '../context/AuthContext'
 
 // Compact language picker. `variant` controls sizing for header vs settings use.
 export default function LanguageSwitcher({ variant = 'header' }) {
   const { i18n, t } = useTranslation()
+  const { user, updateProfile } = useAuth()
   const draft = isDraft(i18n.language)
+  const pick = code => {
+    setLanguage(code)
+    // Persist for logged-in users; never block the instant local switch.
+    if (user) updateProfile({ language: code }).catch(() => {})
+  }
   if (variant === 'settings') {
     return (
       <div>
@@ -19,7 +26,7 @@ export default function LanguageSwitcher({ variant = 'header' }) {
               <button
                 key={l.code}
                 type="button"
-                onClick={() => setLanguage(l.code)}
+                onClick={() => pick(l.code)}
                 className={`px-3 py-2.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer text-left ${
                   active ? 'border-green-600 bg-green-50 text-green-800' : 'border-gray-200 text-gray-600 hover:border-green-400'
                 }`}
@@ -40,7 +47,7 @@ export default function LanguageSwitcher({ variant = 'header' }) {
       <select
         aria-label={t('settings.language')}
         value={i18n.language}
-        onChange={e => setLanguage(e.target.value)}
+        onChange={e => pick(e.target.value)}
         className="bg-transparent text-xs font-semibold cursor-pointer focus:outline-none max-w-[86px]"
       >
         {LANGS.map(l => (

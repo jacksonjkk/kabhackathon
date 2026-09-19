@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { getToken, getSessionUser, setSession, clearSession, authApi } from '../api/client'
+import { setLanguage } from '../i18n'
 
 const AuthContext = createContext(null)
 
@@ -15,6 +16,7 @@ export function AuthProvider({ children }) {
         .then((me) => {
           if (!cancelled) setSession(getToken(), me)
           if (!cancelled) setUser(me)
+          if (!cancelled && me?.language) setLanguage(me.language)
         })
         .catch(() => {
           if (!cancelled) clearSession()
@@ -37,12 +39,14 @@ export function AuthProvider({ children }) {
         const { token, user: u } = await authApi.login(email, password)
         setSession(token, u, remember)
         setUser(u)
+        if (u?.language) setLanguage(u.language)
         return u
       },
       async register(data, remember = true) {
         const { token, user: u } = await authApi.register(data)
         setSession(token, u, remember)
         setUser(u)
+        if (u?.language) setLanguage(u.language)
         return u
       },
       async updateProfile(data) {

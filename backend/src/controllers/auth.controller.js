@@ -6,12 +6,22 @@ import { HttpError } from "../lib/httpError.js";
 import { prisma } from "../lib/prisma.js";
 import { env } from "../config/env.js";
 
+const prefsShape = {
+  language: z.enum(["en", "sw", "lg", "nyn"]).optional(),
+  units: z.enum(["metric", "imperial"]).optional(),
+  alertsEnabled: z.boolean().optional(),
+  trendsEnabled: z.boolean().optional(),
+  monitoringEnabled: z.boolean().optional(),
+  notesEnabled: z.boolean().optional(),
+};
+
 const registerSchema = z.object({
   name: z.string().trim().min(2).max(80),
   email: z.email().toLowerCase(),
   password: z.string().min(8).max(72),
   role: z.enum(["FARMER", "VETERINARIAN", "WORKER"]).default("FARMER"),
   phone: z.string().trim().max(24).nullish(),
+  ...prefsShape,
 });
 
 const loginSchema = z.object({
@@ -25,6 +35,7 @@ const updateProfileSchema = z
     phone: z.string().trim().max(24).nullable().optional(),
     password: z.string().min(8).max(72).optional(),
     role: z.enum(["FARMER", "VETERINARIAN", "WORKER"]).optional(),
+    ...prefsShape,
   })
   .refine((data) => Object.keys(data).length > 0, { message: "No changes provided" });
 
@@ -35,6 +46,12 @@ const sanitizeUser = (user) => ({
   role: user.role,
   phone: user.phone ?? null,
   farmId: user.farmId ?? null,
+  language: user.language ?? "en",
+  units: user.units ?? "metric",
+  alertsEnabled: user.alertsEnabled ?? true,
+  trendsEnabled: user.trendsEnabled ?? true,
+  monitoringEnabled: user.monitoringEnabled ?? true,
+  notesEnabled: user.notesEnabled ?? true,
   createdAt: user.createdAt,
 });
 
@@ -44,14 +61,14 @@ const signToken = (user) =>
   });
 
 export const register = asyncHandler(async (req, res) => {
-  const { name, email, password, role, phone } = registerSchema.parse(req.body);
+  const { name, email, password, role, phone, ...prefs } = registerSchema.parse(req.body);
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) throw new HttpError(409, "An account with this email already exists");
 
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
-    data: { name, email, passwordHash, role, phone: phone ?? null },
+    data: { name, email, passwordHash, role, phone: phone ?? null, ...prefs },
   });
 
   res.status(201).json({ user: sanitizeUser(user), token: signToken(user) });

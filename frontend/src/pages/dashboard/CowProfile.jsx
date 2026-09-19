@@ -7,8 +7,10 @@ import {
   CartesianGrid, Tooltip, ReferenceLine,
 } from 'recharts'
 import { useTranslation } from 'react-i18next'
+import { useAuth } from '../../context/AuthContext'
 import { cattleApi, thermalApi, observationApi } from '../../api/client'
 import { driverForReading, FEVER_LINE } from '../../utils/explain'
+import { formatTemp, toDisplayTemp, tempUnitLabel, useUnits } from '../../utils/units'
 
 // Caretaker quick-log: common visible signs, one tap each. Target: logged in
 // under 10 seconds — tap signs, tap severity, Save. No typing required.
@@ -21,6 +23,13 @@ const SEVERITIES = ['Mild', 'Moderate', 'Severe']
 export default function CowProfile() {
   const { t } = useTranslation()
   const { id } = useParams()
+  const { user } = useAuth()
+  const units = useUnits()
+  const prefs = {
+    trends: user?.trendsEnabled ?? true,
+    notes: user?.notesEnabled ?? true,
+    alerts: user?.alertsEnabled ?? true,
+  }
   const [cattle, setCattle] = useState(null)
   const [predictions, setPredictions] = useState([])
   const [signs, setSigns] = useState([])
@@ -77,12 +86,13 @@ export default function CowProfile() {
     t: new Date(r.capturedAt).toLocaleString(undefined, { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
     full: new Date(r.capturedAt).toLocaleString(),
     temp: r.temperatureC,
+    disp: toDisplayTemp(r.temperatureC, units),
     activity: r.activityLevel ?? null,
     label: r.prediction ?? null,
     score: r.anomalyScore ?? null,
     abnormal: r.prediction === 'ABNORMAL' || r.anomaly,
   }))
-  const temps = trend.map(p => p.temp)
+  const temps = trend.map(p => p.disp)
   const tMin = temps.length ? Math.min(...temps) : 0
   const tMax = temps.length ? Math.max(...temps) : 0
   const yPad = Math.max(0.5, (tMax - tMin) * 0.3 || 0.5)
@@ -100,7 +110,7 @@ export default function CowProfile() {
     return (
       <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-3 py-2 text-xs max-w-[220px]">
         <p className="text-gray-400 text-[10px] mb-1">{p.full}</p>
-        <p className="font-bold text-gray-900 text-sm">{p.temp}°C · activity {p.activity ?? '—'}</p>
+        <p className="font-bold text-gray-900 text-sm">{p.disp.toFixed(1)}{tempUnitLabel(units)} · activity {p.activity ?? '—'}</p>
         <p className={`font-semibold mt-0.5 ${p.abnormal ? 'text-red-600' : 'text-green-600'}`}>
           {p.label === 'ABNORMAL' ? `ABNORMAL${p.score != null ? ` (score ${p.score})` : ''}`
             : p.label === 'NORMAL' ? 'NORMAL pattern'
@@ -129,6 +139,7 @@ export default function CowProfile() {
               </div>
             </div>
 
+            {prefs.trends && (
             <div>
               <h3 className="text-sm font-bold text-gray-900">{t('cow.trendTitle')}</h3>
               <p className="text-[11px] text-gray-500 mt-0.5 mb-3">{t('cow.trendSub')}</p>
@@ -144,9 +155,9 @@ export default function CowProfile() {
                         content={<ChartTip />}
                         cursor={{ stroke: '#9ca3af', strokeDasharray: '3 3' }}
                       />
-                      <ReferenceLine y={FEVER_LINE} stroke="#E53935" strokeDasharray="5 4" label={{ value: `fever ${FEVER_LINE}`, fontSize: 10, fill: '#E53935', position: 'insideTopRight' }} />
+                      <ReferenceLine y={toDisplayTemp(FEVER_LINE, units)} stroke="#E53935" strokeDasharray="5 4" label={{ value: `fever ${toDisplayTemp(FEVER_LINE, units).toFixed(1)}`, fontSize: 10, fill: '#E53935', position: 'insideTopRight' }} />
                       <Line
-                        type="monotone" dataKey="temp" stroke="#2E7D32" strokeWidth={2}
+                        type="monotone" dataKey="disp" stroke="#2E7D32" strokeWidth={2}
                         dot={p => {
                           const bad = p?.payload?.abnormal
                           return <circle key={p.key} cx={p.cx} cy={p.cy} r={bad ? 4.5 : 2.5} fill={bad ? '#E53935' : '#2E7D32'} stroke="#fff" strokeWidth={1} />
@@ -159,6 +170,7 @@ export default function CowProfile() {
                 </div>
               )}
             </div>
+            )}
 
             <div>
               <h3 className="text-sm font-bold text-gray-900 mb-3">{t('cow.readingsTitle')} ({readings.length})</h3>
@@ -176,7 +188,7 @@ export default function CowProfile() {
                         return (
                         <tr key={r.id} className="border-b border-gray-50">
                           <td data-label="Captured" className="py-2 pr-4 text-gray-500">{new Date(r.capturedAt).toLocaleString()}</td>
-                          <td data-label="Temp" className="py-2 pr-4 font-bold">{r.temperatureC}°C</td>
+                          <td data-label="Temp" className="py-2 pr-4 font-bold">{formatTemp(r.temperatureC, units)}</td>
                           <td data-label="Activity" className="py-2 pr-4">{r.activityLevel ?? '—'}</td>
                           <td data-label="ML pattern" className="py-2">{r.prediction === 'ABNORMAL' ? <span className="text-red-600 font-bold">ABNORMAL</span> : r.prediction === 'NORMAL' ? <span className="text-green-600">NORMAL</span> : <span className="text-gray-400">pending ML</span>}
                             {driver && <span className="block text-[10px] font-normal text-gray-500">{driver}</span>}
@@ -190,6 +202,7 @@ export default function CowProfile() {
               )}
             </div>
 
+            {prefs.alerts && (
             <div>
               <h3 className="text-sm font-bold text-gray-900 mb-3">{t('cow.warningsTitle')} ({alerts.length})</h3>
               {!alerts.length && <p className="text-xs text-gray-500">{t('cow.noWarnings')}</p>}
@@ -199,7 +212,9 @@ export default function CowProfile() {
                 </div>
               ))}
             </div>
+            )}
 
+            {prefs.notes && (
             <form onSubmit={logSigns} className="border-t border-gray-100 pt-4">
               <h3 className="text-sm font-bold text-gray-900">{t('cow.logTitle')} <span className="font-normal text-gray-400">· {t('cow.logFast')}</span></h3>
               <p className="text-[11px] text-gray-500 mt-0.5 mb-3">{t('cow.logSub')}</p>
@@ -243,6 +258,7 @@ export default function CowProfile() {
                 ))}
               </div>
             </form>
+            )}
           </>
         )}
       </div>

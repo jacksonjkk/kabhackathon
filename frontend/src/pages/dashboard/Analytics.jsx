@@ -4,16 +4,18 @@ import { motion } from 'framer-motion'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { TrendingUp, TrendingDown, Users, Activity } from 'lucide-react'
 import { analyticsApi } from '../../api/client'
+import { formatTemp, toDisplayTemp, tempUnitLabel, useUnits } from '../../utils/units'
 
 export default function Analytics() {
   const [overview, setOverview] = useState(null)
   const [error, setError] = useState('')
+  const units = useUnits()
   useEffect(() => { analyticsApi.overview().then(setOverview).catch(err => setError(err.message)) }, [])
   const summary = overview?.summary
-  const healthData = (overview?.temperatureTrend || []).map(item => ({ month: item.date, healthy: item.avgTemperatureC || 0, atRisk: 0 }))
+  const healthData = (overview?.temperatureTrend || []).map(item => ({ month: item.date, healthy: toDisplayTemp(item.avgTemperatureC || 0, units), atRisk: 0 }))
   const kpis = [
     { icon: TrendingUp, label: 'Total Cattle', value: summary?.cattleTotal ?? '—', sub: 'Current herd', color: 'text-green-600', bg: 'bg-green-50' },
-    { icon: Activity, label: 'Average Temperature', value: summary?.avgTemperatureC ? `${summary.avgTemperatureC}°C` : '—', sub: 'Last 7 days', color: 'text-green-600', bg: 'bg-green-50' },
+    { icon: Activity, label: 'Average Temperature', value: summary?.avgTemperatureC ? formatTemp(summary.avgTemperatureC, units) : '—', sub: 'Last 7 days', color: 'text-green-600', bg: 'bg-green-50' },
     { icon: TrendingDown, label: 'Temperature Anomalies', value: summary?.temperatureAnomalies7d ?? '—', sub: 'Last 7 days', color: 'text-orange-500', bg: 'bg-orange-50' },
     { icon: Users, label: 'Unread Alerts', value: summary?.unreadAlerts ?? '—', sub: 'Needs attention', color: 'text-blue-500', bg: 'bg-blue-50' },
   ]

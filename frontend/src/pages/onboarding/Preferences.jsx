@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ChevronRight, ArrowLeft, Settings } from 'lucide-react'
 import { LANGS, setLanguage, isDraft } from '../../i18n'
+import { useAuth } from '../../context/AuthContext'
 
 const toggles = [
   { id: 'health', label: 'Early-Warning Alerts', desc: 'Get notified when abnormal health patterns are detected.' },
@@ -13,11 +14,32 @@ const toggles = [
 
 export default function Preferences() {
   const navigate = useNavigate()
+  const { updateProfile } = useAuth()
   const [prefs, setPrefs] = useState(toggles.reduce((a, t) => ({ ...a, [t.id]: false }), {}))
   const [lang, setLang] = useState('en')
   const [unit, setUnit] = useState('metric')
+  const [saving, setSaving] = useState(false)
   const toggle = id => setPrefs(p => ({ ...p, [id]: !p[id] }))
-  const handleSubmit = e => { e.preventDefault(); setLanguage(lang); navigate('/dashboard') }
+  const handleSubmit = async e => {
+    e.preventDefault()
+    setLanguage(lang)
+    setSaving(true)
+    try {
+      await updateProfile({
+        language: lang,
+        units: unit,
+        alertsEnabled: !!prefs.health,
+        trendsEnabled: !!prefs.trends,
+        monitoringEnabled: !!prefs.monitoring,
+        notesEnabled: !!prefs.notes,
+      })
+    } catch {
+      // Prefs stay editable in Settings; never block onboarding.
+    } finally {
+      setSaving(false)
+      navigate('/dashboard')
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-900 to-green-800 relative flex">
@@ -83,8 +105,8 @@ export default function Preferences() {
                 </div>
               </div>
 
-              <button type="submit" className="flex items-center justify-center gap-2 w-full py-3.5 bg-green-700 text-white text-sm font-bold rounded-xl hover:bg-green-800 transition-all hover:shadow-md active:scale-[0.97] cursor-pointer">
-                Go to Dashboard <ChevronRight size={18} />
+              <button type="submit" disabled={saving} className="flex items-center justify-center gap-2 w-full py-3.5 bg-green-700 text-white text-sm font-bold rounded-xl hover:bg-green-800 transition-all hover:shadow-md active:scale-[0.97] cursor-pointer disabled:opacity-60">
+                {saving ? 'Saving…' : 'Go to Dashboard'} {!saving && <ChevronRight size={18} />}
               </button>
             </form>
           </div>

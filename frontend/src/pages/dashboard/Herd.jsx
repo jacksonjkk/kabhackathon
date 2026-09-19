@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Search, Heart, AlertTriangle, PawPrint, X } from 'lucide-react'
 import { cattleApi } from '../../api/client'
+import { formatTemp, useUnits } from '../../utils/units'
 
 // MODULE 1 + 6 — Animal registration (minimal) + herd-level monitoring.
 // Pregnancy / vaccination columns removed (future enhancements, not core).
@@ -12,6 +13,7 @@ const emptyForm = { tagNumber: '', name: '', breed: '', gender: 'FEMALE', birthD
 
 export default function Herd() {
   const { t } = useTranslation()
+  const units = useUnits()
   const [herd, setHerd] = useState([])
   const [search, setSearch] = useState('')
   const [error, setError] = useState('')
@@ -123,7 +125,7 @@ export default function Herd() {
                   <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-100 text-center">
                     <div>
                       <div className="text-[10px] text-gray-400">{t('herd.lastTemp')}</div>
-                      <div className="text-xs font-bold text-gray-800">{latest ? `${latest.temperatureC}°C` : '—'}</div>
+                      <div className="text-xs font-bold text-gray-800">{latest ? formatTemp(latest.temperatureC, units) : '—'}</div>
                     </div>
                     <div>
                       <div className="text-[10px] text-gray-400">{t('herd.mlPattern')}</div>

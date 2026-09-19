@@ -5,12 +5,14 @@ import { motion } from 'framer-motion'
 import { Activity, Heart, AlertTriangle, Thermometer, Bell, Users } from 'lucide-react'
 import DashboardLayout from './DashboardLayout'
 import { analyticsApi } from '../../api/client'
+import { formatTemp, useUnits } from '../../utils/units'
 
 // Revised core: dashboard answers "which animals need checking now?"
 // No MuzzleID / GestaCheck / Vaccination actions (parked as future work).
 
 export default function Dashboard() {
   const { t } = useTranslation()
+  const units = useUnits()
   const [overview, setOverview] = useState(null)
   const [error, setError] = useState('')
 
@@ -116,7 +118,7 @@ export default function Dashboard() {
             <div className="mt-6 pt-4 border-t border-gray-100 space-y-1">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-500">{t('dashboard.avgTemp')}</span>
-                <span className="text-lg font-black text-gray-900">{summary?.avgTemperatureC != null ? `${summary.avgTemperatureC}°C` : '—'}</span>
+                <span className="text-lg font-black text-gray-900">{formatTemp(summary?.avgTemperatureC, units)}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gray-500">{t('dashboard.mlWeek')}</span>

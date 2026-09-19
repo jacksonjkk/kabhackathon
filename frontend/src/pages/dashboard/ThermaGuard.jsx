@@ -3,6 +3,7 @@ import DashboardLayout from './DashboardLayout'
 import { Thermometer, AlertTriangle, CheckCircle2, Activity, BrainCircuit, Radio } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { thermalApi } from '../../api/client'
+import { formatTemp, useUnits } from '../../utils/units'
 import { driverForReading } from '../../utils/explain'
 
 // MODULE 2 + 4 — IoT Monitoring + ML Health Pattern Detection (ThermaGuard core).
@@ -17,6 +18,7 @@ export default function ThermaGuard() {
   const [predictions, setPredictions] = useState([])
   const [summary, setSummary] = useState(null)
   const [error, setError] = useState('')
+  const units = useUnits()
 
   const load = () => {
     thermalApi.readings({ limit: 100 }).then(r => setReadings(r.data)).catch(err => setError(err.message))
@@ -40,7 +42,7 @@ export default function ThermaGuard() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: t('health.readings7d'), value: summary?.readings ?? '—' },
-            { label: t('health.avgTemp'), value: summary?.avgTemperatureC != null ? `${summary.avgTemperatureC}°C` : '—' },
+            { label: t('health.avgTemp'), value: formatTemp(summary?.avgTemperatureC, units) },
             { label: t('health.thresholdAnom'), value: summary?.anomalies ?? '—' },
             { label: t('health.mlAbnormal'), value: summary?.abnormalPatternsML ?? predictions.filter(p => p.label === 'ABNORMAL').length ?? '—' },
           ].map((s, i) => (
@@ -94,7 +96,7 @@ export default function ThermaGuard() {
                     return (
                     <tr key={reading.id} className="border-b border-gray-50">
                       <td data-label={t('health.colAnimal')} className="py-3 pr-4 font-semibold">{reading.cattle?.tagNumber} {reading.cattle?.name || ''}</td>
-                      <td data-label={t('health.colTemp')} className="py-3 pr-4 font-bold"><Thermometer size={15} className="inline mr-1" />{reading.temperatureC}°C</td>
+                      <td data-label={t('health.colTemp')} className="py-3 pr-4 font-bold"><Thermometer size={15} className="inline mr-1" />{formatTemp(reading.temperatureC, units)}</td>
                       <td data-label={t('health.colActivity')} className="py-3 pr-4">{reading.activityLevel ?? '—'}</td>
                       <td data-label={t('health.colPattern')} className="py-3 pr-4">{reading.prediction === 'ABNORMAL' ? <span className="text-red-600 font-bold">{t('status.ABNORMAL')}{reading.anomalyScore != null ? ` (${reading.anomalyScore})` : ''}</span> : reading.prediction === 'NORMAL' ? <span className="text-green-600">{t('status.NORMAL')}</span> : <span className="text-gray-400">{t('health.pendingMl')}</span>}
                         {driver && <span className="block text-[10px] font-normal text-gray-500">{driver}</span>}

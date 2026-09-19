@@ -18,14 +18,17 @@ export default function DashboardLayout({ title, children }) {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
   const [unread, setUnread] = useState(0)
 
+  const alertsOn = user?.alertsEnabled ?? true
+  const monitoringOn = user?.monitoringEnabled ?? true
+
   const sidebarLinks = [
     { section: t('nav.main'), items: [
       { label: t('nav.dashboard'), icon: Home, to: '/dashboard' },
       { label: t('nav.herd'), icon: Users, to: '/dashboard/herd' },
     ]},
     { section: t('nav.monitoring'), items: [
-      { label: t('nav.health'), icon: Thermometer, to: '/dashboard/thermaguard' },
-      { label: t('nav.warnings'), icon: Bell, to: '/dashboard/alerts' },
+      { label: t('nav.health'), icon: Thermometer, to: '/dashboard/thermaguard', hide: !monitoringOn },
+      { label: t('nav.warnings'), icon: Bell, to: '/dashboard/alerts', hide: !alertsOn },
     ]},
     { section: '', items: [
       { label: t('nav.settings'), icon: Settings, to: '/dashboard/settings' },
@@ -41,12 +44,13 @@ export default function DashboardLayout({ title, children }) {
   // Live unread dot for the header bell (one tiny request per navigation).
   useEffect(() => {
     let cancelled = false
+    if (!alertsOn) { setUnread(0); return () => { cancelled = true } }
     alertApi.list({ limit: 1 }).then(
       r => { if (!cancelled) setUnread(r.unreadCount ?? 0) },
       () => { if (!cancelled) setUnread(0) },
     )
     return () => { cancelled = true }
-  }, [location.pathname])
+  }, [location.pathname, alertsOn])
 
   const closeMobile = () => {
     if (window.innerWidth < 1024) setSidebarOpen(false)
@@ -78,7 +82,7 @@ export default function DashboardLayout({ title, children }) {
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 mb-2">{section.section}</p>
               )}
               <div className="space-y-0.5">
-                {section.items.map(item => {
+                {section.items.filter(item => !item.hide).map(item => {
                   const Icon = item.icon
                   const active = location.pathname === item.to
                   return (
@@ -119,10 +123,12 @@ export default function DashboardLayout({ title, children }) {
           </div>
           <div className="flex items-center gap-1 sm:gap-3">
             <LanguageSwitcher />
+            {alertsOn && (
             <Link to="/dashboard/alerts" aria-label={`Early warnings${unread ? `, ${unread} unread` : ''}`} className="relative p-2 text-gray-600 hover:text-green-700 transition-colors rounded-lg hover:bg-green-50 cursor-pointer">
               <Bell size={20} />
               {unread > 0 && <span className="absolute top-1.5 right-1.5 min-w-2 h-2 px-0.5 rounded-full bg-red-500 text-[8px] font-bold text-white flex items-center justify-center">{unread > 9 ? '9+' : unread}</span>}
             </Link>
+            )}
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-xs font-bold text-green-700">{user?.name?.slice(0, 2).toUpperCase()}</div>
               <div className="hidden sm:block">

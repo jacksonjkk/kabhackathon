@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import DashboardLayout from './DashboardLayout'
-import { User, Building2, Languages } from 'lucide-react'
+import { User, Building2, Languages, SlidersHorizontal } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { farmApi } from '../../api/client'
 import LanguageSwitcher from '../../components/LanguageSwitcher'
@@ -12,12 +12,21 @@ export default function Settings() {
   const [farm, setFarm] = useState(null)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
+  const [units, setUnits] = useState('metric')
+  const [features, setFeatures] = useState({ alerts: true, trends: true, monitoring: true, notes: true })
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
     setName(user?.name || '')
     setPhone(user?.phone || '')
+    setUnits(user?.units || 'metric')
+    setFeatures({
+      alerts: user?.alertsEnabled ?? true,
+      trends: user?.trendsEnabled ?? true,
+      monitoring: user?.monitoringEnabled ?? true,
+      notes: user?.notesEnabled ?? true,
+    })
     farmApi.mine().then(setFarm).catch(err => setError(err.message))
   }, [user])
 
@@ -27,6 +36,23 @@ export default function Settings() {
     setSaved(false)
     try {
       await updateProfile({ name, phone: phone || null })
+      setSaved(true)
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  const savePrefs = async () => {
+    setError('')
+    setSaved(false)
+    try {
+      await updateProfile({
+        units,
+        alertsEnabled: features.alerts,
+        trendsEnabled: features.trends,
+        monitoringEnabled: features.monitoring,
+        notesEnabled: features.notes,
+      })
       setSaved(true)
     } catch (err) {
       setError(err.message)
@@ -76,6 +102,34 @@ export default function Settings() {
               <h2 className="text-sm font-bold text-gray-900">{t('settings.language')}</h2>
             </div>
             <LanguageSwitcher variant="settings" />
+          </div>
+
+          <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5">
+            <div className="flex items-center gap-3 mb-4">
+              <SlidersHorizontal size={22} className="text-green-600" />
+              <h2 className="text-sm font-bold text-gray-900">Display & Features</h2>
+            </div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">Units</label>
+            <select value={units} onChange={e => setUnits(e.target.value)} className="w-full mb-4 px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+              <option value="metric">Metric (°C, kg)</option>
+              <option value="imperial">Imperial (°F, lbs)</option>
+            </select>
+            {[
+              { id: 'alerts', label: 'Early-Warning Alerts' },
+              { id: 'trends', label: 'Health Trend History' },
+              { id: 'monitoring', label: 'Continuous Monitoring' },
+              { id: 'notes', label: 'Observation Notes' },
+            ].map(f => (
+              <button key={f.id} type="button" onClick={() => setFeatures(p => ({ ...p, [f.id]: !p[f.id] }))} className="flex items-center justify-between w-full py-2 text-sm">
+                <span className="text-gray-700">{f.label}</span>
+                <span className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${features[f.id] ? 'bg-green-600' : 'bg-gray-300'}`}>
+                  <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${features[f.id] ? 'translate-x-5.5 left-0.5' : 'left-0.5'}`} />
+                </span>
+              </button>
+            ))}
+            <button onClick={savePrefs} className="mt-3 px-4 py-2.5 rounded-lg bg-green-700 text-white text-sm font-semibold cursor-pointer">Save Preferences</button>
+            {saved && <p className="mt-3 text-xs text-green-600">{t('settings.saved')}</p>}
+            {error && <p className="mt-3 text-xs text-red-600" role="alert">{error}</p>}
           </div>
         </div>
       </div>
