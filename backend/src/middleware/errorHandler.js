@@ -1,5 +1,4 @@
 import { HttpError } from "../lib/httpError.js";
-import { env } from "../config/env.js";
 
 export function notFound(req, res) {
   res.status(404).json({ message: `Route not found: ${req.method} ${req.originalUrl}` });
@@ -35,8 +34,8 @@ export function errorHandler(err, req, res, _next) {
     message = "Malformed JSON payload";
   }
 
-  if (status >= 500 && env.nodeEnv !== "production") {
-    console.error(err);
+  if (status >= 500) {
+    console.error(`[${req.method} ${req.originalUrl}]`, err);
   }
 
   const body = { message };

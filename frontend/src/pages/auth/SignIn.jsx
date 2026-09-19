@@ -101,12 +101,12 @@ export default function SignIn() {
           <form className="flex flex-col gap-3 text-left" onSubmit={handleSubmit}>
             <div className="relative flex items-center">
               <span className="absolute left-3.5 text-green-600 pointer-events-none z-10"><Mail size={18} /></span>
-              <input name="email" value={form.email} onChange={handleChange} type="email" placeholder="Email Address" required
+              <input name="email" value={form.email} onChange={handleChange} type="email" autoComplete="email" placeholder="Email Address" required
                 className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-black/10 bg-white/70 text-sm text-gray-800 placeholder-gray-400 focus:border-green-500 focus:bg-white focus:ring-3 focus:ring-green-500/15 transition-all" />
             </div>
             <div className="relative flex items-center">
               <span className="absolute left-3.5 text-green-600 pointer-events-none z-10"><Lock size={18} /></span>
-              <input name="password" value={form.password} onChange={handleChange} type={showPwd ? 'text' : 'password'} placeholder="Password" required
+              <input name="password" value={form.password} onChange={handleChange} type={showPwd ? 'text' : 'password'} autoComplete="current-password" placeholder="Password" required
                 className="w-full pl-10 pr-11 py-3 rounded-xl border border-black/10 bg-white/70 text-sm text-gray-800 placeholder-gray-400 focus:border-green-500 focus:bg-white focus:ring-3 focus:ring-green-500/15 transition-all" />
               <button type="button" onClick={() => setShowPwd(v => !v)} className="absolute right-3 text-gray-400 hover:text-green-600 transition-colors cursor-pointer">
                 {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}

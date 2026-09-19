@@ -95,15 +95,15 @@ export default function SignUp() {
 
           <form className="flex flex-col gap-3 text-left" onSubmit={handleSubmit}>
             {[
-              { name: 'name', placeholder: 'Full Name', icon: User },
-              { name: 'email', placeholder: 'Email Address', type: 'email', icon: Mail },
-              { name: 'phone', placeholder: 'Phone Number', type: 'tel', icon: Phone },
+              { name: 'name', placeholder: 'Full Name', icon: User, autoComplete: 'name' },
+              { name: 'email', placeholder: 'Email Address', type: 'email', icon: Mail, autoComplete: 'email' },
+              { name: 'phone', placeholder: 'Phone Number', type: 'tel', icon: Phone, autoComplete: 'tel' },
             ].map(f => {
               const Icon = f.icon
               return (
               <div key={f.name} className="relative flex items-center">
                 <span className="absolute left-3.5 text-green-600 pointer-events-none z-10"><Icon size={18} /></span>
-                <input name={f.name} value={form[f.name]} onChange={handleChange} type={f.type || 'text'} placeholder={f.placeholder} required
+                <input name={f.name} value={form[f.name]} onChange={handleChange} type={f.type || 'text'} autoComplete={f.autoComplete} placeholder={f.placeholder} required
                   className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-black/10 bg-white/70 text-sm text-gray-800 placeholder-gray-400 focus:border-green-500 focus:bg-white focus:ring-3 focus:ring-green-500/15 transition-all" />
               </div>
               )
@@ -114,7 +114,7 @@ export default function SignUp() {
             ].map(f => (
               <div key={f.name} className="relative flex items-center">
                 <span className="absolute left-3.5 text-green-600 pointer-events-none z-10"><Lock size={18} /></span>
-                <input name={f.name} value={form[f.name]} onChange={handleChange} type={f.show ? 'text' : 'password'} placeholder={f.placeholder} required
+                <input name={f.name} value={form[f.name]} onChange={handleChange} type={f.show ? 'text' : 'password'} autoComplete="new-password" placeholder={f.placeholder} required
                   className="w-full pl-10 pr-11 py-3 rounded-xl border border-black/10 bg-white/70 text-sm text-gray-800 placeholder-gray-400 focus:border-green-500 focus:bg-white focus:ring-3 focus:ring-green-500/15 transition-all" />
                 <button type="button" onClick={f.toggle} className="absolute right-3 text-gray-400 hover:text-green-600 transition-colors cursor-pointer">
                   {f.show ? <EyeOff size={18} /> : <Eye size={18} />}

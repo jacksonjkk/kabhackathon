@@ -1,6 +1,16 @@
 const TOKEN_KEY = 'bovipulse_token'
 const USER_KEY = 'bovipulse_user'
 
+// In dev this is empty (Vite proxies /api -> localhost:4000).
+// In production (Vercel) this is the Render URL, e.g. https://kabhackathon.onrender.com
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '')
+
+export function resolveAssetUrl(path) {
+  if (!path) return path
+  if (/^https?:\/\//i.test(path)) return path
+  return `${API_BASE}${path.startsWith('/') ? path : `/${path}`}`
+}
+
 // Remember-me: persistent localStorage when true, per-tab sessionStorage when false.
 function stores() {
   return [localStorage, sessionStorage]
@@ -58,7 +68,7 @@ async function request(path, { method = 'GET', body, isForm = false, signal } = 
 
   let res
   try {
-    res = await fetch(`/api${path}`, { method, headers, body: payload, signal })
+    res = await fetch(`${API_BASE}/api${path}`, { method, headers, body: payload, signal })
   } catch {
     throw new ApiError(0, 'Cannot reach the server. Is the backend running?')
   }
