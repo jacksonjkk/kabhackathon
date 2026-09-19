@@ -471,7 +471,11 @@ export const createReading = asyncHandler(async (req, res) => {
           prediction: scored.label,
           anomalyScore: scored.anomalyScore ?? null,
           modelVersion: scored.modelVersion ?? null,
-          anomaly: scored.label === "ABNORMAL",
+          // A threshold breach is an anomaly even when the model disagrees —
+          // otherwise a 40.5C reading is stored as anomaly=false while its
+          // riskLevel/reason scream CRITICAL (dashboard contradiction).
+          // prediction.label stays the pure model verdict for honest ML audit.
+          anomaly: scored.label === "ABNORMAL" || fallback.anomaly,
           riskLevel: severityFromPrediction(scored.label, scored.anomalyScore, fallback.riskLevel),
         },
       });
