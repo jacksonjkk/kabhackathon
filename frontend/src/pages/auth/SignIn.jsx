@@ -33,7 +33,7 @@ export default function SignIn() {
       <img src="https://images.pexels.com/photos/5633473/pexels-photo-5633473.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&dpr=1" alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />
       <div className="absolute inset-0 bg-gradient-to-br from-green-900/80 to-green-800/80" />
 
-      <header className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 lg:px-12 py-4">
+      <header className="hidden sm:flex fixed top-0 left-0 right-0 z-50 items-center justify-between px-6 lg:px-12 py-4">
         <Link to="/" className="flex items-center gap-2.5 text-white">
           <img src={logo} alt="BoviPulse logo" className="w-16 h-16 rounded-xl object-contain" />
           <span className="text-lg font-extrabold tracking-tight">BoviPulse</span>

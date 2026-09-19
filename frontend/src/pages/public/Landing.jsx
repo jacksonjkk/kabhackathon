@@ -95,27 +95,6 @@ export default function Landing() {
                 Watch Demo
               </button>
             </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex items-center gap-4"
-            >
-              <div className="flex -space-x-2">
-                {[1, 2, 3, 4].map(i => (
-                  <div
-                    key={i}
-                    className="w-9 h-9 rounded-full border-2 border-white bg-green-100 flex items-center justify-center text-xs font-bold text-green-700"
-                  >
-                    {['JD', 'MK', 'AL', 'SR'][i - 1]}
-                  </div>
-                ))}
-              </div>
-              <span className="text-sm text-gray-500 font-medium">
-                Final-year Computer Science project: IoT sensing + ML abnormal-pattern detection
-              </span>
-            </motion.div>
           </div>
         </div>
 

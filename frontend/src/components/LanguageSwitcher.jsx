@@ -41,8 +41,22 @@ export default function LanguageSwitcher({ variant = 'header' }) {
       </div>
     )
   }
+  const cycle = () => {
+    const i = LANGS.findIndex(l => l.code === i18n.language)
+    pick(LANGS[(i + 1) % LANGS.length].code)
+  }
   return (
-    <label className="flex items-center gap-1.5 px-2 py-2 text-sm text-gray-600 hover:text-green-700 transition-colors rounded-md hover:bg-green-50/50 cursor-pointer">
+    <>
+      <button
+        type="button"
+        onClick={cycle}
+        aria-label={t('settings.language')}
+        className="sm:hidden flex items-center gap-1 px-2 py-2 text-xs font-black text-gray-600 hover:text-green-700 transition-colors rounded-md hover:bg-green-50/50 cursor-pointer"
+      >
+        <Globe size={16} />
+        {i18n.language.toUpperCase()}
+      </button>
+      <label className="hidden sm:flex items-center gap-1.5 px-2 py-2 text-sm text-gray-600 hover:text-green-700 transition-colors rounded-md hover:bg-green-50/50 cursor-pointer">
       <Globe size={16} />
       <select
         aria-label={t('settings.language')}
@@ -55,5 +69,6 @@ export default function LanguageSwitcher({ variant = 'header' }) {
         ))}
       </select>
     </label>
+    </>
   )
 }

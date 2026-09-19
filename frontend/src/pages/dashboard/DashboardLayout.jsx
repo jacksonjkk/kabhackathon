@@ -122,9 +122,7 @@ export default function DashboardLayout({ title, children }) {
             <h1 className="text-sm sm:text-lg font-bold text-gray-900 truncate min-w-0 max-w-[120px] sm:max-w-none">{title}</h1>
           </div>
           <div className="flex items-center gap-0.5 sm:gap-3 flex-shrink-0">
-            <div className="hidden md:block">
-              <LanguageSwitcher />
-            </div>
+            <LanguageSwitcher />
             {alertsOn && (
             <Link to="/dashboard/alerts" aria-label={`Early warnings${unread ? `, ${unread} unread` : ''}`} className="relative p-2 text-gray-600 hover:text-green-700 transition-colors rounded-lg hover:bg-green-50 cursor-pointer">
               <Bell size={20} />
