@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ChevronRight, ArrowLeft, Settings } from 'lucide-react'
+import { LANGS, setLanguage, isDraft } from '../../i18n'
 
 const toggles = [
   { id: 'health', label: 'Early-Warning Alerts', desc: 'Get notified when abnormal health patterns are detected.' },
@@ -16,7 +17,7 @@ export default function Preferences() {
   const [lang, setLang] = useState('en')
   const [unit, setUnit] = useState('metric')
   const toggle = id => setPrefs(p => ({ ...p, [id]: !p[id] }))
-  const handleSubmit = e => { e.preventDefault(); navigate('/dashboard') }
+  const handleSubmit = e => { e.preventDefault(); setLanguage(lang); navigate('/dashboard') }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-900 to-green-800 relative flex">
@@ -52,10 +53,9 @@ export default function Preferences() {
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-semibold text-gray-700">Language</label>
                     <select value={lang} onChange={e => setLang(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:border-green-500 focus:bg-white focus:ring-3 focus:ring-green-500/15 transition-all">
-                      <option value="en">English</option>
-                      <option value="sw">Swahili</option>
-                      <option value="fr">French</option>
-                      <option value="pt">Portuguese</option>
+                      {LANGS.map(l => (
+                        <option key={l.code} value={l.code}>{l.label}{isDraft(l.code) ? ' *' : ''}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="flex flex-col gap-1.5">
