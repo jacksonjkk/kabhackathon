@@ -17,6 +17,7 @@ export default function DashboardLayout({ title, children }) {
   const { user, logout } = useAuth()
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024)
   const [unread, setUnread] = useState(0)
+  const [profileOpen, setProfileOpen] = useState(false)
 
   const alertsOn = user?.alertsEnabled ?? true
   const monitoringOn = user?.monitoringEnabled ?? true
@@ -129,13 +130,32 @@ export default function DashboardLayout({ title, children }) {
               {unread > 0 && <span className="absolute top-1.5 right-1.5 min-w-2 h-2 px-0.5 rounded-full bg-red-500 text-[8px] font-bold text-white flex items-center justify-center">{unread > 9 ? '9+' : unread}</span>}
             </Link>
             )}
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-xs font-bold text-green-700">{user?.name?.slice(0, 2).toUpperCase()}</div>
-              <div className="hidden sm:block">
-                <div className="text-sm font-semibold text-gray-900">{user?.name}</div>
-                <div className="text-[11px] text-gray-500">{user?.role}</div>
-              </div>
-              <ChevronDown size={14} className="text-gray-400 hidden sm:block" />
+            <div className="relative">
+              <button onClick={() => setProfileOpen(o => !o)} aria-label="Profile menu" aria-expanded={profileOpen} className="flex items-center gap-2.5 p-1 rounded-lg hover:bg-green-50/50 transition-colors cursor-pointer">
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-xs font-bold text-green-700">{user?.name?.slice(0, 2).toUpperCase()}</div>
+                <div className="hidden sm:block text-left">
+                  <div className="text-sm font-semibold text-gray-900">{user?.name}</div>
+                  <div className="text-[11px] text-gray-500">{user?.role}</div>
+                </div>
+                <ChevronDown size={14} className={`text-gray-400 transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {profileOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
+                  <div className="absolute right-0 top-full mt-2 z-50 w-52 bg-white border border-gray-200 rounded-xl shadow-xl py-1.5 overflow-hidden">
+                    <div className="px-4 py-2.5 border-b border-gray-100">
+                      <p className="text-sm font-bold text-gray-900 truncate">{user?.name}</p>
+                      <p className="text-[11px] text-gray-500 truncate">{user?.email}</p>
+                    </div>
+                    <Link to="/dashboard/settings" onClick={() => { setProfileOpen(false); closeMobile() }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
+                      <Settings size={15} className="text-green-600" /> {t('nav.settings')}
+                    </Link>
+                    <button onClick={() => { setProfileOpen(false); logout(); closeMobile() }} className="flex items-center gap-2.5 w-full px-4 py-2.5 text-xs font-semibold text-red-500 hover:bg-red-50 transition-colors cursor-pointer">
+                      <LogOut size={15} /> {t('nav.logout')}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </header>
