@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import logo from '../../assets/logo11.png'
-import { Eye, EyeOff, ArrowRight, Activity, Lock, Cloud, BarChart3, Headphones, Users, ShieldCheck, Globe, User, Mail, Phone } from 'lucide-react'
+import { Eye, EyeOff, ArrowRight, Activity, Lock, Cloud, BarChart3, Headphones, Users, ShieldCheck, Globe, User, Mail } from 'lucide-react'
 
 const COUNTRY_CODES = [
   { code: '+260', label: '🇿🇲 +260' },
@@ -134,9 +134,8 @@ export default function SignUp() {
               )
             })}
             <div className="relative flex items-center gap-2">
-              <span className="absolute left-3.5 text-green-600 pointer-events-none z-10"><Phone size={18} /></span>
               <select value={code} onChange={e => setCode(e.target.value)} aria-label="Country code"
-                className="pl-10 pr-2 py-3 rounded-xl border border-black/10 bg-white/70 text-sm text-gray-800 focus:border-green-500 focus:bg-white focus:ring-3 focus:ring-green-500/15 transition-all max-w-[6.5rem]">
+                className="flex-shrink-0 pl-3 pr-2 py-3 rounded-xl border border-black/10 bg-white/70 text-sm text-gray-800 focus:border-green-500 focus:bg-white focus:ring-3 focus:ring-green-500/15 transition-all max-w-[7rem]">
                 {COUNTRY_CODES.map(c => (
                   <option key={c.code} value={c.code}>{c.label}</option>
                 ))}
