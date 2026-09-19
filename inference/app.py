@@ -39,11 +39,13 @@ BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = Path(os.environ.get("MODEL_DIR", BASE_DIR.parent / "models"))
 RF_VERSION = os.environ.get("MODEL_VERSION", "rf-300-external-v1")
 ISO_VERSION = os.environ.get("ISO_MODEL_VERSION", "iso-300-external-v1")
-# Operating threshold for the supervised path. Default 0.5 matches the
-# notebook's predict() evaluation (abnormal precision 1.00 / recall 0.52,
-# ROC-AUC 0.996). Lower it (e.g. 0.35) only based on validation PR analysis
-# if earlier warnings are worth more false alarms in your deployment.
-RF_THRESHOLD = float(os.environ.get("RF_THRESHOLD", "0.5"))
+# Operating threshold for the supervised path. Default 0.4 (lowered from the
+# notebook's 0.5 evaluation point) because field experience showed the model
+# smoothing over single extreme spikes (e.g. a lone 40.5C scored 0.41 and was
+# called NORMAL). At 0.4 those spikes flag ABNORMAL while the threshold
+# fallback still owns the extremes. Override per-deploy with RF_THRESHOLD
+# (notebook precision 1.00 / recall 0.52, ROC-AUC 0.996 at 0.5).
+RF_THRESHOLD = float(os.environ.get("RF_THRESHOLD", "0.4"))
 
 app = FastAPI(title="BoviPulse Inference", version="1.0.0")
 
