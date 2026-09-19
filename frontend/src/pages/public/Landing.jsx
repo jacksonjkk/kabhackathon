@@ -118,15 +118,48 @@ export default function Landing() {
           initial={{ opacity: 0, scale: 1.05 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="absolute right-0 top-0 bottom-0 w-[55%] lg:w-[60%] z-0 hidden lg:block"
+          className="absolute right-6 xl:right-12 top-24 bottom-10 w-[50%] xl:w-[52%] z-0 hidden lg:block rounded-[2rem] overflow-hidden shadow-2xl ring-1 ring-black/10"
         >
           <img
-            src="https://images.pexels.com/photos/5633476/pexels-photo-5633476.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+            src="https://images.pexels.com/photos/5633476/pexels-photo-5633476.jpeg?auto=compress&cs=tinysrgb&w=1600&dpr=1"
             alt="Holstein Friesian cows grazing"
             className="w-full h-full object-cover"
             loading="eager"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/10 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-green-950/40 via-transparent to-transparent" />
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            className="absolute top-6 right-6 bg-white/95 backdrop-blur rounded-2xl px-4 py-3 shadow-xl flex items-center gap-3"
+          >
+            <span className="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center">
+              <Thermometer size={18} className="text-green-700" />
+            </span>
+            <span>
+              <span className="block text-lg font-black text-gray-900 leading-none">38.6°C</span>
+              <span className="block text-[10px] font-bold text-green-700 uppercase tracking-wide mt-0.5">Normal · live</span>
+            </span>
+            <span className="relative flex h-2.5 w-2.5 ml-1">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-60" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-600" />
+            </span>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.9 }}
+            className="absolute bottom-6 left-6 right-6 bg-white/95 backdrop-blur rounded-2xl px-4 py-3 shadow-xl flex items-center gap-3"
+          >
+            <span className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+              <Bell size={18} className="text-red-600" />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-xs font-black text-gray-900 truncate">Early warning · BP-003</span>
+              <span className="block text-[11px] text-gray-500 truncate">Fever-range pattern flagged for a check — not a diagnosis.</span>
+            </span>
+          </motion.div>
         </motion.div>
       </section>
 

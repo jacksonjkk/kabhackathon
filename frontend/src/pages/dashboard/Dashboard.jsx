@@ -4,8 +4,9 @@ import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { Activity, Heart, AlertTriangle, Thermometer, Bell, Users } from 'lucide-react'
 import DashboardLayout from './DashboardLayout'
-import { analyticsApi } from '../../api/client'
+import { analyticsApi, farmApi } from '../../api/client'
 import { formatTemp, useUnits } from '../../utils/units'
+import WeatherCard from '../../components/WeatherCard'
 
 // Revised core: dashboard answers "which animals need checking now?"
 // No MuzzleID / GestaCheck / Vaccination actions (parked as future work).
@@ -15,6 +16,7 @@ export default function Dashboard() {
   const units = useUnits()
   const [overview, setOverview] = useState(null)
   const [error, setError] = useState('')
+  const [farm, setFarm] = useState(null)
 
   const quickActions = [
     { icon: Thermometer, label: t('dashboard.qaMonitor'), to: '/dashboard/thermaguard', color: 'text-orange-500', bg: 'bg-orange-50' },
@@ -24,6 +26,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     analyticsApi.overview().then(setOverview).catch(err => setError(err.message))
+    farmApi.mine().then(setFarm).catch(() => {})
   }, [])
 
   const summary = overview?.summary
@@ -46,6 +49,12 @@ export default function Dashboard() {
       <div className="space-y-6">
         {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
         <p className="text-xs text-gray-500 -mt-2">{t('dashboard.subtitle')}</p>
+        <WeatherCard
+          latitude={farm?.latitude}
+          longitude={farm?.longitude}
+          place={farm?.location || farm?.name}
+          units={units}
+        />
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((s, i) => {

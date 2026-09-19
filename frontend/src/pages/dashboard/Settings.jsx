@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import DashboardLayout from './DashboardLayout'
-import { User, Building2, Languages, SlidersHorizontal, MapPin, CloudSun } from 'lucide-react'
+import { User, Building2, Languages, SlidersHorizontal, MapPin } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { farmApi } from '../../api/client'
-import { askBrowserLocation, fetchLocalWeather } from '../../api/weather'
+import { askBrowserLocation } from '../../api/weather'
 import LanguageSwitcher from '../../components/LanguageSwitcher'
 
 export default function Settings() {
@@ -22,8 +22,6 @@ export default function Settings() {
   const [longitude, setLongitude] = useState('')
   const [locating, setLocating] = useState(false)
   const [savingFarm, setSavingFarm] = useState(false)
-  const [weather, setWeather] = useState(null)
-  const [weatherState, setWeatherState] = useState('idle') // idle|loading|ok|fail
 
   useEffect(() => {
     setName(user?.name || '')
@@ -43,27 +41,6 @@ export default function Settings() {
       })
       .catch(err => setError(err.message))
   }, [user])
-
-  // Live weather for the farm's coordinates (display only — ML backfill is server-side).
-  // No GPS = no weather card data (honest null, no fallback town).
-  // Number('') is 0, so empty fields map to NaN. Debounced for typing.
-  useEffect(() => {
-    const lat = latitude.trim() === '' ? NaN : Number(latitude)
-    const lon = longitude.trim() === '' ? NaN : Number(longitude)
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-      setWeather(null)
-      setWeatherState('idle')
-      return
-    }
-    const ctrl = new AbortController()
-    setWeatherState('loading')
-    const t = setTimeout(() => {
-      fetchLocalWeather(lat, lon, ctrl.signal)
-        .then(w => { if (!ctrl.signal.aborted) { setWeather(w); setWeatherState(w ? 'ok' : 'fail') } })
-        .catch(() => { if (!ctrl.signal.aborted) setWeatherState('fail') })
-    }, 600)
-    return () => { clearTimeout(t); ctrl.abort() }
-  }, [farm?.id, latitude, longitude])
 
   const save = async event => {
     event.preventDefault()
@@ -177,17 +154,7 @@ export default function Settings() {
                     {savingFarm ? 'Saving…' : 'Save location'}
                   </button>
                 </div>
-                <div className="flex items-center gap-2 rounded-lg bg-sky-50 border border-sky-100 px-3 py-2.5">
-                  <CloudSun size={18} className="text-sky-600 flex-shrink-0" />
-                  {weatherState === 'idle' && <p className="text-xs text-gray-500">Save your farm GPS above for live local weather — the system needs it plus collar data to decide.</p>}
-                  {weatherState === 'loading' && <p className="text-xs text-gray-500">Loading local weather…</p>}
-                  {weatherState === 'ok' && weather && (
-                    <p className="text-xs text-gray-700">
-                      Now at your farm: <span className="font-bold">{weather.ambientC}°C</span>, humidity <span className="font-bold">{weather.humidity}%</span>
-                    </p>
-                  )}
-                  {weatherState === 'fail' && <p className="text-xs text-gray-500">Weather unavailable offline.</p>}
-                </div>
+                <p className="text-xs text-gray-500 mt-1">Live weather shows on the dashboard once GPS is saved — the system pairs it with collar data.</p>
                 <div><p className="text-xs text-gray-500">{t('settings.cattle')}</p><p className="font-semibold">{farm._count?.cattle ?? 0}</p></div>
               </div>
             ) : !error ? (
