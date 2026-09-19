@@ -97,13 +97,13 @@ export default function SignUp() {
             {[
               { name: 'name', placeholder: 'Full Name', icon: User, autoComplete: 'name' },
               { name: 'email', placeholder: 'Email Address', type: 'email', icon: Mail, autoComplete: 'email' },
-              { name: 'phone', placeholder: 'Phone Number', type: 'tel', icon: Phone, autoComplete: 'tel' },
+              { name: 'phone', placeholder: 'Phone Number', type: 'tel', icon: Phone, autoComplete: 'tel', maxLength: 24 },
             ].map(f => {
               const Icon = f.icon
               return (
               <div key={f.name} className="relative flex items-center">
                 <span className="absolute left-3.5 text-green-600 pointer-events-none z-10"><Icon size={18} /></span>
-                <input name={f.name} value={form[f.name]} onChange={handleChange} type={f.type || 'text'} autoComplete={f.autoComplete} placeholder={f.placeholder} required
+                <input name={f.name} value={form[f.name]} onChange={handleChange} type={f.type || 'text'} autoComplete={f.autoComplete} maxLength={f.maxLength} placeholder={f.placeholder} required
                   className="w-full pl-10 pr-3.5 py-3 rounded-xl border border-black/10 bg-white/70 text-sm text-gray-800 placeholder-gray-400 focus:border-green-500 focus:bg-white focus:ring-3 focus:ring-green-500/15 transition-all" />
               </div>
               )
