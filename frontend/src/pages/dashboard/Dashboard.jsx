@@ -49,12 +49,6 @@ export default function Dashboard() {
       <div className="space-y-6">
         {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
         <p className="text-xs text-gray-500 -mt-2">{t('dashboard.subtitle')}</p>
-        <WeatherCard
-          latitude={farm?.latitude}
-          longitude={farm?.longitude}
-          place={farm?.location || farm?.name}
-          units={units}
-        />
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((s, i) => {
@@ -79,6 +73,13 @@ export default function Dashboard() {
             )
           })}
         </div>
+
+        <WeatherCard
+          latitude={farm?.latitude}
+          longitude={farm?.longitude}
+          place={farm?.location || farm?.name}
+          units={units}
+        />
 
         {/* Two column */}
         <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
