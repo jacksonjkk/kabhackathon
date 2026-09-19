@@ -137,7 +137,7 @@ export default function DashboardLayout({ title, children }) {
                   <div className="text-sm font-semibold text-gray-900">{user?.name}</div>
                   <div className="text-[11px] text-gray-500">{user?.role}</div>
                 </div>
-                <ChevronDown size={14} className={`text-gray-400 transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`hidden sm:block text-gray-400 transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
               </button>
               {profileOpen && (
                 <>
