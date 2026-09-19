@@ -99,7 +99,7 @@ export default function Herd() {
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('herd.search')} className="pl-9 pr-3.5 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm w-full sm:w-52 focus:border-green-500 focus:bg-white focus:ring-3 focus:ring-green-500/15 transition-all" />
             </div>
-            <button onClick={openForm} className="inline-flex items-center gap-2 text-xs font-semibold text-white bg-green-700 px-4 py-2.5 rounded-lg hover:bg-green-800 transition-all cursor-pointer">
+            <button onClick={openForm} className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs font-semibold text-white bg-green-700 px-4 py-2.5 rounded-lg hover:bg-green-800 transition-all cursor-pointer">
               <Plus size={14} /> {t('herd.register')}
             </button>
           </div>
@@ -142,11 +142,11 @@ export default function Herd() {
       <AnimatePresence>
         {showForm && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
+            className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-3 sm:p-4" onClick={() => setShowForm(false)}>
             <motion.form
               initial={{ scale: 0.96, y: 12 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.96, y: 12 }}
               onClick={e => e.stopPropagation()} onSubmit={submit}
-              className="bg-white rounded-2xl p-5 sm:p-6 w-full max-w-md max-h-[90dvh] overflow-y-auto space-y-3">
+              className="bg-white rounded-2xl p-4 sm:p-6 w-full max-w-md max-h-[90dvh] overflow-y-auto space-y-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-base font-bold text-gray-900">{t('herd.modalTitle')}</h2>
                 <button type="button" onClick={() => setShowForm(false)} className="p-2 text-gray-400 hover:text-gray-700 cursor-pointer"><X size={18} /></button>
@@ -154,11 +154,11 @@ export default function Herd() {
               <p className="text-xs text-gray-500">{t('herd.modalSub')}</p>
               {formError && <p className="text-sm text-red-600" role="alert">{formError}</p>}
               <input required value={form.tagNumber} onChange={e => setForm({ ...form, tagNumber: e.target.value })} placeholder={t('herd.tag')} className="w-full rounded-lg border border-gray-200 bg-gray-50 text-sm px-3 py-2.5" />
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3">
                 <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder={t('herd.name')} className="w-full rounded-lg border border-gray-200 bg-gray-50 text-sm px-3 py-2.5" />
                 <input value={form.breed} onChange={e => setForm({ ...form, breed: e.target.value })} placeholder={t('herd.breed')} className="w-full rounded-lg border border-gray-200 bg-gray-50 text-sm px-3 py-2.5" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3">
                 <select value={form.gender} onChange={e => setForm({ ...form, gender: e.target.value })} className="w-full rounded-lg border border-gray-200 bg-gray-50 text-sm px-3 py-2.5">
                   <option value="FEMALE">{t('herd.female')}</option>
                   <option value="MALE">{t('herd.male')}</option>

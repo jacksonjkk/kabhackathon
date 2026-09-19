@@ -114,15 +114,17 @@ export default function DashboardLayout({ title, children }) {
 
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-white border-b border-gray-200 h-20 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-gray-600 hover:text-green-700 transition-colors rounded-lg hover:bg-green-50 cursor-pointer">
+        <header className="bg-white border-b border-gray-200 h-16 sm:h-20 flex items-center justify-between gap-2 px-3 sm:px-4 lg:px-6 sticky top-0 z-30">
+          <div className="flex items-center gap-1 sm:gap-3 min-w-0">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 text-gray-600 hover:text-green-700 transition-colors rounded-lg hover:bg-green-50 cursor-pointer flex-shrink-0">
               <Menu size={20} />
             </button>
-            <h1 className="text-base sm:text-lg font-bold text-gray-900 truncate min-w-0 max-w-[140px] sm:max-w-none">{title}</h1>
+            <h1 className="text-sm sm:text-lg font-bold text-gray-900 truncate min-w-0 max-w-[120px] sm:max-w-none">{title}</h1>
           </div>
-          <div className="flex items-center gap-1 sm:gap-3">
-            <LanguageSwitcher />
+          <div className="flex items-center gap-0.5 sm:gap-3 flex-shrink-0">
+            <div className="hidden md:block">
+              <LanguageSwitcher />
+            </div>
             {alertsOn && (
             <Link to="/dashboard/alerts" aria-label={`Early warnings${unread ? `, ${unread} unread` : ''}`} className="relative p-2 text-gray-600 hover:text-green-700 transition-colors rounded-lg hover:bg-green-50 cursor-pointer">
               <Bell size={20} />

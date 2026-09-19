@@ -53,7 +53,7 @@ export default function ThermaGuard() {
           ))}
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5">
           <h2 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2"><BrainCircuit size={16} className="text-purple-600" /> {t('health.latestPred')}</h2>
             {!predictions.length && <p className="py-8 text-center text-sm text-gray-500">{t('health.noPred')}</p>}
             {!!predictions.length && (
@@ -77,7 +77,7 @@ export default function ThermaGuard() {
             )}
           </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
+        <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2"><Activity size={16} className="text-green-600" /> {t('health.sensorTitle')}</h2>
             <span className="text-xs text-gray-500">{t('health.last7')}</span>

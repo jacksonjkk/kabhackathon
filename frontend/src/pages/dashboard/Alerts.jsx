@@ -41,7 +41,7 @@ export default function Alerts() {
             <p className="text-xs text-gray-500">{urgent} · {t('alerts.sub')}</p>
           </div>
         </div>
-        <button onClick={() => alertApi.markAllRead().then(() => setAlerts(current => current.map(alert => ({ ...alert, isRead: true })))).catch(err => setError(err.message))} className="inline-flex items-center gap-2 text-xs font-semibold text-green-700 bg-green-50 px-4 py-2.5 rounded-lg hover:bg-green-100 transition-all cursor-pointer">
+        <button onClick={() => alertApi.markAllRead().then(() => setAlerts(current => current.map(alert => ({ ...alert, isRead: true })))).catch(err => setError(err.message))} className="inline-flex items-center justify-center gap-2 w-full sm:w-auto text-xs font-semibold text-green-700 bg-green-50 px-4 py-2.5 rounded-lg hover:bg-green-100 transition-all cursor-pointer">
           <CheckCheck size={14} /> {t('common.acknowledgeAll')}
         </button>
       </div>

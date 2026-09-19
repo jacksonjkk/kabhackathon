@@ -70,6 +70,9 @@ body {
     padding: 0.4rem 0;
     border: none;
   }
+  .r-table td > :last-child {
+    min-width: 0;
+  }
   .r-table td::before {
     content: attr(data-label);
     font-size: 11px;
