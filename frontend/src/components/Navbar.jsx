@@ -25,7 +25,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-2">
         <Link to="/" className="flex items-center gap-2">
           <img src={logo} alt="BoviPulse logo" className="w-11 h-11 sm:w-16 sm:h-16 rounded-xl object-contain flex-shrink-0" />
-          <span className="hidden min-[400px]:inline text-xl font-extrabold text-green-700 tracking-tight whitespace-nowrap">BoviPulse</span>
+          <span className="text-lg sm:text-xl font-extrabold text-green-700 tracking-tight whitespace-nowrap">BoviPulse</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">
