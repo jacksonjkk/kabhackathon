@@ -8,7 +8,7 @@ export async function fetchLocalWeather(latitude, longitude, signal) {
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}` +
-    `&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=auto`
+    `&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=Africa%2FKampala`
   const res = await fetch(url, { signal })
   if (!res.ok) return null
   const json = await res.json()
@@ -26,8 +26,8 @@ export async function fetchForecast(latitude, longitude, signal) {
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${lat}` +
     `&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code` +
-    `&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min` +
-    `&timezone=auto&forecast_days=2`
+    `&hourly=temperature_2m,relative_humidity_2m,weather_code&daily=temperature_2m_max,temperature_2m_min` +
+    `&timezone=Africa%2FKampala&forecast_days=2`
   const res = await fetch(url, { signal })
   if (!res.ok) return null
   const json = await res.json()
@@ -37,12 +37,14 @@ export async function fetchForecast(latitude, longitude, signal) {
   const now = Date.parse(json?.current?.time ?? NaN)
   const times = json?.hourly?.time ?? []
   const temps = json?.hourly?.temperature_2m ?? []
+  const hums = json?.hourly?.relative_humidity_2m ?? []
   const codes = json?.hourly?.weather_code ?? []
   const hourly = []
   for (let i = 0; i < times.length && hourly.length < 8; i += 1) {
     if (Number.isFinite(now) && Date.parse(times[i]) < now) continue
     if (!Number.isFinite(Number(temps[i]))) continue
-    hourly.push({ time: times[i], tempC: Number(temps[i]), code: codes[i] ?? null })
+    const h = Number(hums[i])
+    hourly.push({ time: times[i], tempC: Number(temps[i]), humidity: Number.isFinite(h) ? h : null, code: codes[i] ?? null })
   }
   return {
     ambientC,

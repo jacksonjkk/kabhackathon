@@ -34,7 +34,7 @@ export function resolveFarmCoords(farm) {
 async function fetchCurrent(latitude, longitude) {
   const url =
     `https://api.open-meteo.com/v1/forecast?latitude=${latitude}` +
-    `&longitude=${longitude}&current=temperature_2m,relative_humidity_2m&timezone=auto`;
+    `&longitude=${longitude}&current=temperature_2m,relative_humidity_2m&timezone=Africa%2FKampala`;
   const res = await fetch(url, { signal: AbortSignal.timeout(env.weatherTimeoutMs) });
   if (!res.ok) throw new Error(`Open-Meteo ${res.status}`);
   const json = await res.json();

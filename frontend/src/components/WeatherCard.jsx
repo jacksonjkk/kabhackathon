@@ -100,6 +100,7 @@ export default function WeatherCard({ latitude, longitude, place, units }) {
           <p className="text-xs text-gray-500 mt-0.5 inline-flex items-center gap-1">
             <Droplets size={13} className="text-sky-600" /> Humidity {data.humidity}%
           </p>
+          <p className="text-[10px] text-gray-400 mt-1">Environmental data · Open-Meteo model, not an on-farm thermometer.</p>
         </div>
       </div>
       {!!data.hourly?.length && (
