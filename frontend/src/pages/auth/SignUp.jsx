@@ -4,11 +4,27 @@ import { motion } from 'framer-motion'
 import logo from '../../assets/logo11.png'
 import { Eye, EyeOff, ArrowRight, Activity, Lock, Cloud, BarChart3, Headphones, Users, ShieldCheck, Globe, User, Mail, Phone } from 'lucide-react'
 
+const COUNTRY_CODES = [
+  { code: '+260', label: 'Zambia (+260)' },
+  { code: '+263', label: 'Zimbabwe (+263)' },
+  { code: '+265', label: 'Malawi (+265)' },
+  { code: '+255', label: 'Tanzania (+255)' },
+  { code: '+254', label: 'Kenya (+254)' },
+  { code: '+256', label: 'Uganda (+256)' },
+  { code: '+27', label: 'South Africa (+27)' },
+  { code: '+234', label: 'Nigeria (+234)' },
+  { code: '+233', label: 'Ghana (+233)' },
+  { code: '+1', label: 'USA/Canada (+1)' },
+  { code: '+44', label: 'UK (+44)' },
+  { code: '+91', label: 'India (+91)' },
+]
+
 export default function SignUp() {
   const navigate = useNavigate()
   const [showPwd, setShowPwd] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirm: '' })
+  const [code, setCode] = useState('+260')
   const handleChange = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   const [error, setError] = useState('')
   const handleSubmit = e => {
@@ -17,8 +33,18 @@ export default function SignUp() {
       setError('Passwords do not match')
       return
     }
+    const national = form.phone.replace(/[\s()-]/g, '').replace(/^0+/, '')
+    if (!/^\d{4,15}$/.test(national)) {
+      setError('Enter a valid phone number')
+      return
+    }
+    const fullPhone = `${code}${national}`
+    if (fullPhone.length > 24) {
+      setError('Phone number is too long')
+      return
+    }
     sessionStorage.setItem('bovipulse_signup', JSON.stringify({
-      name: form.name, email: form.email, phone: form.phone, password: form.password,
+      name: form.name, email: form.email, phone: fullPhone, password: form.password,
     }))
     navigate('/role')
   }
@@ -97,7 +123,6 @@ export default function SignUp() {
             {[
               { name: 'name', placeholder: 'Full Name', icon: User, autoComplete: 'name' },
               { name: 'email', placeholder: 'Email Address', type: 'email', icon: Mail, autoComplete: 'email' },
-              { name: 'phone', placeholder: 'Phone Number', type: 'tel', icon: Phone, autoComplete: 'tel', maxLength: 24 },
             ].map(f => {
               const Icon = f.icon
               return (
@@ -108,6 +133,17 @@ export default function SignUp() {
               </div>
               )
             })}
+            <div className="relative flex items-center gap-2">
+              <span className="absolute left-3.5 text-green-600 pointer-events-none z-10"><Phone size={18} /></span>
+              <select value={code} onChange={e => setCode(e.target.value)} aria-label="Country code"
+                className="pl-10 pr-2 py-3 rounded-xl border border-black/10 bg-white/70 text-sm text-gray-800 focus:border-green-500 focus:bg-white focus:ring-3 focus:ring-green-500/15 transition-all max-w-[7.5rem]">
+                {COUNTRY_CODES.map(c => (
+                  <option key={c.code} value={c.code}>{c.label}</option>
+                ))}
+              </select>
+              <input name="phone" value={form.phone} onChange={handleChange} type="tel" autoComplete="tel" placeholder="971 234 567" required
+                className="flex-1 min-w-0 px-3.5 py-3 rounded-xl border border-black/10 bg-white/70 text-sm text-gray-800 placeholder-gray-400 focus:border-green-500 focus:bg-white focus:ring-3 focus:ring-green-500/15 transition-all" />
+            </div>
             {[
               { name: 'password', placeholder: 'Password', show: showPwd, toggle: () => setShowPwd(v => !v) },
               { name: 'confirm', placeholder: 'Confirm Password', show: showConfirm, toggle: () => setShowConfirm(v => !v) },
