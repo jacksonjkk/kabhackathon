@@ -105,7 +105,7 @@ export async function handleUssd({ phoneNumber, text }) {
       where: { farmId: farm.id, type: "HEALTH", isRead: false },
     });
     return CON(
-      `BoviPulse ${farm.name.slice(0, 20)}\n1.Report cow\n2.Check alerts${unread ? `(${unread})` : ""}\n3.Cow status\n4.Help`
+      `BoviPulse - ${farm.name.slice(0, 20)}\n1.Report cow\n2.Check alerts${unread ? `(${unread})` : ""}\n3.Cow status\n4.Help`
     );
   }
 
