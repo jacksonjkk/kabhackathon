@@ -60,4 +60,12 @@ export const env = {
   atSmsFrom: process.env.AT_SMS_FROM ?? "",
   atSmsUrl:
     process.env.AT_SMS_URL ?? "https://api.sandbox.africastalking.com/version1",
+  // Email alerts via SMTP relay (e.g. Brevo). Empty host/user/pass disables
+  // sending — in-app alerts still work. EMAIL_FROM must be a sender address
+  // verified in the relay provider, otherwise delivery is rejected.
+  smtpHost: (process.env.SMTP_HOST ?? "").trim(),
+  smtpPort: toInt(process.env.SMTP_PORT, 587),
+  smtpUser: (process.env.SMTP_USER ?? "").trim(),
+  smtpPass: process.env.SMTP_PASS ?? "",
+  emailFrom: (process.env.EMAIL_FROM ?? "BoviPulse <noreply@bovipulse.app>").trim(),
 };

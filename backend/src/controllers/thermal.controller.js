@@ -7,6 +7,7 @@ import { env } from "../config/env.js";
 import { getPagination, paginated } from "../lib/pagination.js";
 import { createAlert, SEVERITY_ORDER } from "../services/alert.service.js";
 import { notifyFarmSms } from "../services/sms.service.js";
+import { notifyFarmAlert } from "../services/email.service.js";
 import { getFarmWeather } from "../services/weather.service.js";
 
 const DAY_MS = 86_400_000;
@@ -334,6 +335,8 @@ async function raiseEarlyWarning({ farm, cattle, data, fallback, predictionRow, 
         where: { id: recent.id },
         data: { severity: guarded.severity, message: guarded.message },
       });
+      // Escalation email (fire-and-forget — ingest never waits).
+      notifyFarmAlert({ farm, alert: escalated, cattleTag: cattle.tagNumber }).catch(() => {});
       return { alertCreated: false, alert: escalated, escalated: true };
     }
     return { alertCreated: false, alert: recent };
@@ -357,6 +360,10 @@ async function raiseEarlyWarning({ farm, cattle, data, fallback, predictionRow, 
     farm.id,
     `BoviPulse Alert: Cow #${cattle.tagNumber} needs a check (${guarded.severity}). Dial the BoviPulse code to report its condition.`
   ).catch(() => {});
+
+  // Email the farm members via the SMTP relay (fire-and-forget — ingest
+  // never waits; cooldown above prevents repeat mails for the same warning).
+  notifyFarmAlert({ farm, alert, cattleTag: cattle.tagNumber }).catch(() => {});
 
   // Only genuine health scares flip herd status — estrus/calving watches don't.
   if (cattle.healthStatus === "HEALTHY" && guarded.reproTag === null) {
