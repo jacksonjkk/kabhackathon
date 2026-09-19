@@ -53,4 +53,11 @@ export const env = {
   weatherEnabled: (process.env.WEATHER_ENABLED ?? "true").toLowerCase() !== "false",
   weatherCacheTtlMs: toInt(process.env.WEATHER_CACHE_TTL_S, 900) * 1000,
   weatherTimeoutMs: toInt(process.env.WEATHER_TIMEOUT_MS, 4000),
+  // Africa's Talking (USSD callbacks need no key; outbound SMS does).
+  // Sandbox delivers SMS only to registered test numbers.
+  atUsername: process.env.AT_USERNAME ?? "sandbox",
+  atApiKey: process.env.AT_API_KEY ?? "",
+  atSmsFrom: process.env.AT_SMS_FROM ?? "",
+  atSmsUrl:
+    process.env.AT_SMS_URL ?? "https://api.sandbox.africastalking.com/version1",
 };

@@ -7,6 +7,7 @@ import alertRoutes from "./alert.routes.js";
 import analyticsRoutes from "./analytics.routes.js";
 import thermalRoutes from "./thermal.routes.js";
 import observationRoutes from "./observation.routes.js";
+import ussdRoutes from "./ussd.routes.js";
 // ---------------------------------------------------------------------------
 // REVISED BoviPulse scope: single core problem = delayed detection of abnormal
 // cattle health patterns. Only health-monitoring routes are mounted.
@@ -36,5 +37,7 @@ router.use("/alerts", alertRoutes);
 router.use("/analytics", analyticsRoutes);
 // Supporting — human follow-up notes on alerts
 router.use("/observations", observationRoutes);
+// Basic-phone caretakers (Africa's Talking USSD; public, phone-matched)
+router.use("/ussd", ussdRoutes);
 
 export default router;

@@ -6,6 +6,7 @@ import { requireFarm } from "../lib/farmScope.js";
 import { env } from "../config/env.js";
 import { getPagination, paginated } from "../lib/pagination.js";
 import { createAlert, SEVERITY_ORDER } from "../services/alert.service.js";
+import { notifyFarmSms } from "../services/sms.service.js";
 import { getFarmWeather } from "../services/weather.service.js";
 
 const DAY_MS = 86_400_000;
@@ -348,6 +349,14 @@ async function raiseEarlyWarning({ farm, cattle, data, fallback, predictionRow, 
     message: guarded.message,
     predictionId: fromModel ? predictionRow?.id ?? null : null,
   });
+
+  // Basic-phone loop: SMS the caretakers (fire-and-forget — ingest never
+  // waits). They dial the USSD code to report back; cooldown above
+  // prevents repeat texts for the same warning.
+  notifyFarmSms(
+    farm.id,
+    `BoviPulse Alert: Cow #${cattle.tagNumber} needs a check (${guarded.severity}). Dial the BoviPulse code to report its condition.`
+  ).catch(() => {});
 
   // Only genuine health scares flip herd status — estrus/calving watches don't.
   if (cattle.healthStatus === "HEALTHY" && guarded.reproTag === null) {
