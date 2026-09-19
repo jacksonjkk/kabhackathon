@@ -55,6 +55,14 @@ const CON = (s) => `CON ${s}`;
 const END = (s) => `END ${s}`;
 const cowLabel = (c) => c.tagNumber;
 
+// Short stamp in East Africa Time, e.g. "19/9 22:50" — lets caretakers tell
+// fresh warnings from stale unread ones at a glance. Language-neutral digits.
+const eatStamp = (d) => {
+  const t = new Date(new Date(d).getTime() + 3 * 3_600_000);
+  const p = (n) => String(n).padStart(2, "0");
+  return `${t.getUTCDate()}/${t.getUTCMonth() + 1} ${p(t.getUTCHours())}:${p(t.getUTCMinutes())}`;
+};
+
 // --- report mappings (note text mirrors app-side sign keywords) ---
 const APPETITE = {
   1: "Appetite normal",
@@ -89,7 +97,7 @@ const STR = {
     otherSaved: (cow) => `Saved for ${cow}. A vet will review. Thank you!`,
     alertsNone: "No unread warnings. Herd looks calm. Good work!",
     alertsList: "Unread warnings:",
-    alertsHint: "Reply number for detail.",
+    alertsHint: "Reply number.",
     checked: "Marked checked.",
     cowWhich: "Status for which cow?",
     noData: "no data",
@@ -270,13 +278,13 @@ export async function handleUssd({ phoneNumber, text }) {
     const alerts = await prisma.alert.findMany({
       where: { farmId: farm.id, type: "HEALTH", isRead: false },
       orderBy: { createdAt: "desc" },
-      take: 5,
+      take: 4,
       include: { cattle: { select: { tagNumber: true } } },
     });
     if (!alerts.length) return END(S.alertsNone);
     if (segs.length === 1) {
       const lines = alerts.map(
-        (a, i) => `${i + 1}.${a.cattle?.tagNumber ?? "?"} ${a.severity}`
+        (a, i) => `${i + 1}.${a.cattle?.tagNumber ?? "?"} ${a.severity} ${eatStamp(a.createdAt)}`
       );
       return CON(`${S.alertsList}\n${lines.join("\n")}\n${S.alertsHint}`);
     }
@@ -285,7 +293,7 @@ export async function handleUssd({ phoneNumber, text }) {
     const tag = alert.cattle?.tagNumber ?? "";
     await prisma.alert.update({ where: { id: alert.id }, data: { isRead: true } });
     return END(
-      `${tag} [${alert.severity}]\n${alert.message.slice(0, 100)}\n${S.checked}`
+      `${tag} [${alert.severity}] ${eatStamp(alert.createdAt)}\n${alert.message.slice(0, 85)}\n${S.checked}`
     );
   }
 
