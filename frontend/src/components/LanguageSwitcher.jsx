@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Globe } from 'lucide-react'
+import { Globe, Check } from 'lucide-react'
 import { LANGS, setLanguage, isDraft } from '../i18n'
 import { useAuth } from '../context/AuthContext'
 
@@ -41,21 +42,45 @@ export default function LanguageSwitcher({ variant = 'header' }) {
       </div>
     )
   }
-  const cycle = () => {
-    const i = LANGS.findIndex(l => l.code === i18n.language)
-    pick(LANGS[(i + 1) % LANGS.length].code)
-  }
+  const [open, setOpen] = useState(false)
+  const choose = code => { pick(code); setOpen(false) }
   return (
     <>
-      <button
-        type="button"
-        onClick={cycle}
-        aria-label={t('settings.language')}
-        className="sm:hidden flex items-center gap-1 px-2 py-2 text-xs font-black text-gray-600 hover:text-green-700 transition-colors rounded-md hover:bg-green-50/50 cursor-pointer"
-      >
-        <Globe size={16} />
-        {i18n.language.toUpperCase()}
-      </button>
+      <div className="sm:hidden relative">
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          aria-label={t('settings.language')}
+          aria-expanded={open}
+          className="flex items-center gap-1 px-2 py-2 text-xs font-black text-gray-600 hover:text-green-700 transition-colors rounded-md hover:bg-green-50/50 cursor-pointer"
+        >
+          <Globe size={16} />
+          {i18n.language.toUpperCase()}
+        </button>
+        {open && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+            <div className="absolute right-0 top-full mt-1 z-50 min-w-[11rem] bg-white border border-gray-200 rounded-xl shadow-xl py-1.5 overflow-hidden">
+              {LANGS.map(l => {
+                const active = i18n.language === l.code
+                return (
+                  <button
+                    key={l.code}
+                    type="button"
+                    onClick={() => choose(l.code)}
+                    className={`flex items-center justify-between gap-3 w-full px-3.5 py-2.5 text-xs font-semibold transition-colors cursor-pointer ${
+                      active ? 'bg-green-50 text-green-800' : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span>{l.label}{isDraft(l.code) ? ' *' : ''}</span>
+                    {active && <Check size={14} className="text-green-700 flex-shrink-0" />}
+                  </button>
+                )
+              })}
+            </div>
+          </>
+        )}
+      </div>
       <label className="hidden sm:flex items-center gap-1.5 px-2 py-2 text-sm text-gray-600 hover:text-green-700 transition-colors rounded-md hover:bg-green-50/50 cursor-pointer">
       <Globe size={16} />
       <select
