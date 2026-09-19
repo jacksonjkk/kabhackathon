@@ -22,10 +22,10 @@ export default function Navbar() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-green-100/50">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5">
-          <img src={logo} alt="BoviPulse logo" className="w-16 h-16 rounded-xl object-contain" />
-          <span className="text-xl font-extrabold text-green-700 tracking-tight">BoviPulse</span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between gap-2">
+        <Link to="/" className="flex items-center gap-2">
+          <img src={logo} alt="BoviPulse logo" className="w-11 h-11 sm:w-16 sm:h-16 rounded-xl object-contain flex-shrink-0" />
+          <span className="hidden min-[400px]:inline text-xl font-extrabold text-green-700 tracking-tight whitespace-nowrap">BoviPulse</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">
