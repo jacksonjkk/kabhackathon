@@ -1,0 +1,6 @@
+fastapi>=0.110
+uvicorn>=0.29
+numpy>=1.26
+joblib>=1.3
+# Must match the version the pickles were trained with:
+scikit-learn==1.6.1

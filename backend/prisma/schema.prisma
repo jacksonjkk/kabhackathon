@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("FARMER")
+  phone        String?
+  farmId       String?
+  farm         Farm?    @relation("ActiveFarm", fields: [farmId], references: [id])
+  ownedFarm    Farm?    @relation("Ownership")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Farm {
+  id            String   @id @default(cuid())
+  name          String
+  location      String?
+  sizeHectares  Float?
+  capacity      Int?
+  members       User[]   @relation("ActiveFarm")
+  ownerId       String   @unique
+  owner         User     @relation("Ownership", fields: [ownerId], references: [id], onDelete: Cascade)
+  cattle        Cattle[]
+  inventoryItems InventoryItem[]
+  alerts        Alert[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Cattle {
+  id              String    @id @default(cuid())
+  tagNumber       String    @unique
+  name            String?
+  breed           String?
+  gender          String
+  birthDate       DateTime?
+  weightKg        Float?
+  healthStatus    String    @default("HEALTHY")
+  pregnancyStatus String?
+  lactationStage  String?
+  photoUrl        String?
+  notes           String?
+  farmId          String
+  farm            Farm      @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  vaccinations    Vaccination[]
+  thermalReadings ThermalReading[]
+  predictions     Prediction[]
+  observations    Observation[]
+  gestaChecks     GestaCheck[]
+  muzzleProfiles  MuzzleProfile[]
+  alerts          Alert[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Vaccination {
+  id           String    @id @default(cuid())
+  vaccineName  String
+  doseDate     DateTime
+  nextDueDate  DateTime?
+  status       String    @default("SCHEDULED")
+  vetName      String?
+  batchNumber  String?
+  notes        String?
+  cattleId     String
+  cattle       Cattle    @relation(fields: [cattleId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([cattleId])
+  @@index([nextDueDate])
+}
+
+model InventoryItem {
+  id           String   @id @default(cuid())
+  name         String
+  category     String
+  quantity     Float    @default(0)
+  unit         String   @default("units")
+  reorderLevel Float    @default(0)
+  supplier     String?
+  farmId       String
+  farm         Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([farmId])
+}
+
+model Alert {
+  id        String   @id @default(cuid())
+  // CORE types for revised scope: HEALTH (ML/threshold early warning) + SYSTEM.
+  // VACCINATION / INVENTORY kept only for legacy rows; new code should not create them.
+  type      String
+  // Source of the alert: THRESHOLD (fallback), MODEL (external ML), MANUAL.
+  source    String   @default("THRESHOLD")
+  severity  String   @default("LOW")
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  farmId    String
+  farm      Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  cattleId  String?
+  cattle    Cattle?  @relation(fields: [cattleId], references: [id], onDelete: Cascade)
+  // Link back to the ML prediction that triggered this alert, when applicable.
+  predictionId String?
+  prediction   Prediction? @relation(fields: [predictionId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@index([farmId, isRead])
+  @@index([cattleId, createdAt])
+}
+
+model ThermalReading {
+  id          String   @id @default(cuid())
+  temperatureC Float
+  ambientC    Float?
+  // Revised core sensor fields (IoT monitoring). Optional to stay backward compatible.
+  activityLevel Float?
+  humidity      Float?
+  deviceId      String?
+  anomaly     Boolean  @default(false)
+  riskLevel   String   @default("LOW")
+  // ML decision-support fields, written by the external model via POST /thermaguard/predictions
+  // or inline with a reading. NULL = not yet scored by ML (threshold fallback only).
+  // prediction: NORMAL | ABNORMAL | null. Never a disease diagnosis.
+  prediction   String?
+  anomalyScore Float?
+  modelVersion String?
+  imageUrl    String?
+  capturedAt  DateTime @default(now())
+  cattleId    String
+  cattle      Cattle   @relation(fields: [cattleId], references: [id], onDelete: Cascade)
+  predictions Prediction[]
+
+  @@index([cattleId, capturedAt])
+}
+
+// ML inference result stored separately so the model can be trained/served outside
+// the backend (student trains externally, backend only stores + serves predictions).
+model Prediction {
+  id           String   @id @default(cuid())
+  cattleId     String
+  cattle       Cattle   @relation(fields: [cattleId], references: [id], onDelete: Cascade)
+  readingId    String?
+  reading      ThermalReading? @relation(fields: [readingId], references: [id], onDelete: SetNull)
+  // NORMAL | ABNORMAL — abnormal health pattern, NOT a disease label.
+  label        String
+  anomalyScore Float?
+  // Plain-language likely driver, e.g. "Fever-range temp (39.7C)".
+  // Shown on charts, tables, and inside alert messages so humans see WHY.
+  reason       String?
+  modelVersion String   @default("external-v1")
+  featuresJson String?
+  createdAt    DateTime @default(now())
+  alerts       Alert[]
+
+  @@index([cattleId, createdAt])
+}
+
+// Human follow-up notes on a cow (supports the early-warning loop: detect -> check -> note).
+model Observation {
+  id        String   @id @default(cuid())
+  cattleId  String
+  cattle    Cattle   @relation(fields: [cattleId], references: [id], onDelete: Cascade)
+  note      String
+  action    String?
+  createdBy String?
+  createdAt DateTime @default(now())
+
+  @@index([cattleId, createdAt])
+}
+
+model GestaCheck {
+  id                String   @id @default(cuid())
+  method            String
+  result            String
+  confidence        Float?
+  daysSinceBreeding Int?
+  examDate          DateTime @default(now())
+  notes             String?
+  cattleId          String
+  cattle            Cattle   @relation(fields: [cattleId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+
+  @@index([cattleId])
+}
+
+model MuzzleProfile {
+  id        String   @id @default(cuid())
+  imagePath String
+  imageHash String   @unique
+  cattleId  String
+  cattle    Cattle   @relation(fields: [cattleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([cattleId])
+}

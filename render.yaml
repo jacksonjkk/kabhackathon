@@ -1,0 +1,58 @@
+databases:
+  - name: bovipulse-db
+    plan: free
+
+services:
+  - type: web
+    name: bovipulse-inference
+    env: python
+    plan: free
+    rootDir: inference
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port 8000
+    healthCheckPath: /health
+    envVars:
+      - key: MODEL_DIR
+        value: ../models
+      - key: MODEL_VERSION
+        value: rf-300-external-v1
+      - key: ISO_MODEL_VERSION
+        value: iso-300-external-v1
+
+  - type: web
+    name: bovipulse-api
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm ci && npx prisma generate && npx prisma migrate deploy
+    startCommand: node src/server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bovipulse-db
+          property: connectionString
+      - key: INFERENCE_URL
+        fromService:
+          name: bovipulse-inference
+          type: web
+          property: host
+      - key: CORS_ORIGIN
+        value: https://bovipulse-web.onrender.com
+      - key: JWT_SECRET
+        generateValue: true
+      - key: THERMAL_FEVER_THRESHOLD_C
+        value: 39.5
+
+  - type: web
+    name: bovipulse-web
+    env: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://bovipulse-api.onrender.com

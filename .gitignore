@@ -1,0 +1,36 @@
+# Dependencies
+**/node_modules/
+inference/venv/
+**/__pycache__/
+**/*.pyc
+
+# Builds
+frontend/dist/
+frontend/.vite/
+
+# Env + secrets
+.env
+backend/.env
+*.local
+
+# Runtime data (never commit)
+*.db
+*.db-journal
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Large raw data / zips (use Drive link in README)
+*.zip
+notebooks/*.csv
+datasets/
+ml/data/
+Frontend/dashboard/
+Frontend/ui.zip
+
+# OS + editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
