@@ -19,6 +19,15 @@ export const listAlerts = asyncHandler(async (req, res) => {
   if (rawType !== "ALL" && ALERT_TYPES.includes(rawType)) where.type = rawType;
   const severity = typeof req.query.severity === "string" ? req.query.severity.toUpperCase() : "";
   if (severity) where.severity = severity;
+  if (typeof req.query.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(req.query.date)) {
+    where.createdAt = {
+      gte: new Date(`${req.query.date}T00:00:00.000Z`),
+      lte: new Date(`${req.query.date}T23:59:59.999Z`),
+    };
+  } else if (typeof req.query.days === "string" && req.query.days) {
+    const d = Math.min(Math.max(Number.parseInt(req.query.days, 10) || 7, 1), 90);
+    where.createdAt = { gte: new Date(Date.now() - d * 86_400_000) };
+  }
   // Default to the revised core: health early warnings only.
   // Pass type=ALL explicitly to include SYSTEM alerts.
 

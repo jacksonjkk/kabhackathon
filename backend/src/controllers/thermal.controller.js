@@ -558,6 +558,35 @@ export const createPrediction = asyncHandler(async (req, res) => {
   res.status(201).json({ ...prediction, alertCreated });
 });
 
+// Day / range filter shared by readings + predictions + summary.
+// Priority: ?date=YYYY-MM-DD > ?from=&?to= (ISO) > ?days=N (fallback).
+// Returns a Prisma date filter ({gte, lte}) or null when params are invalid.
+function dateRangeFilter(query) {
+  const asDate = (v) => {
+    const d = new Date(v);
+    return Number.isNaN(d.getTime()) ? null : d;
+  };
+  if (typeof query.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(query.date)) {
+    const start = new Date(`${query.date}T00:00:00.000Z`);
+    const end = new Date(`${query.date}T23:59:59.999Z`);
+    if (!Number.isNaN(start.getTime())) return { gte: start, lte: end };
+  }
+  const from = typeof query.from === "string" && query.from ? asDate(query.from) : null;
+  const to = typeof query.to === "string" && query.to ? asDate(query.to) : null;
+  if (from || to) {
+    const f = {};
+    if (from) f.gte = from;
+    if (to) f.lte = to;
+    return f;
+  }
+  return null;
+}
+
+function daysFilter(query) {
+  const days = Math.min(Math.max(Number.parseInt(String(query.days ?? "7"), 10) || 7, 1), 90);
+  return { gte: new Date(Date.now() - days * DAY_MS) };
+}
+
 export const listPredictions = asyncHandler(async (req, res) => {
   const farm = await requireFarm(req.user);
   const { page, limit, skip, take } = getPagination(req.query);
@@ -569,8 +598,7 @@ export const listPredictions = asyncHandler(async (req, res) => {
   if (typeof req.query.label === "string" && ["NORMAL", "ABNORMAL"].includes(req.query.label)) {
     where.label = req.query.label;
   }
-  const days = Math.min(Math.max(Number.parseInt(String(req.query.days ?? "7"), 10) || 7, 1), 90);
-  where.createdAt = { gte: new Date(Date.now() - days * DAY_MS) };
+  where.createdAt = dateRangeFilter(req.query) ?? daysFilter(req.query);
 
   const [total, rows] = await Promise.all([
     prisma.prediction.count({ where }),
@@ -597,8 +625,14 @@ export const listReadings = asyncHandler(async (req, res) => {
   if (String(req.query.anomalyOnly ?? "") === "true") {
     where.OR = [{ anomaly: true }, { prediction: "ABNORMAL" }];
   }
-  const days = Math.min(Math.max(Number.parseInt(String(req.query.days ?? "7"), 10) || 7, 1), 90);
-  where.capturedAt = { gte: new Date(Date.now() - days * DAY_MS) };
+  if (typeof req.query.prediction === "string" && ["NORMAL", "ABNORMAL"].includes(req.query.prediction)) {
+    where.prediction = req.query.prediction;
+  }
+  if (typeof req.query.search === "string" && req.query.search.trim()) {
+    const q = req.query.search.trim();
+    where.cattle = { farmId: farm.id, tagNumber: { contains: q, mode: "insensitive" } };
+  }
+  where.capturedAt = dateRangeFilter(req.query) ?? daysFilter(req.query);
 
   const [total, rows] = await Promise.all([
     prisma.thermalReading.count({ where }),
@@ -617,10 +651,13 @@ export const listReadings = asyncHandler(async (req, res) => {
 export const getSummary = asyncHandler(async (req, res) => {
   const farm = await requireFarm(req.user);
 
+  const range = dateRangeFilter(req.query);
   const days = Math.min(Math.max(Number.parseInt(String(req.query.days ?? "7"), 10) || 7, 1), 90);
-  const since = new Date(Date.now() - days * DAY_MS);
+  const since = range?.gte ?? new Date(Date.now() - days * DAY_MS);
+  const until = range?.lte ?? null;
 
-  const where = { cattle: { farmId: farm.id }, capturedAt: { gte: since } };
+  const capturedFilter = until ? { gte: since, lte: until } : { gte: since };
+  const where = { cattle: { farmId: farm.id }, capturedAt: capturedFilter };
   if (typeof req.query.cattleId === "string" && req.query.cattleId) {
     const cattle = await prisma.cattle.findFirst({
       where: { id: req.query.cattleId, farmId: farm.id },
@@ -646,14 +683,14 @@ export const getSummary = asyncHandler(async (req, res) => {
       where: {
         cattle: { farmId: farm.id },
         label: "ABNORMAL",
-        createdAt: { gte: since },
+        createdAt: capturedFilter,
         ...(where.cattleId ? { cattleId: where.cattleId } : {}),
       },
     }),
   ]);
 
   res.json({
-    periodDays: days,
+    periodDays: range ? 1 : days,
     readings: aggregate._count._all,
     avgTemperatureC: aggregate._avg.temperatureC != null ? Number(aggregate._avg.temperatureC.toFixed(2)) : null,
     minTemperatureC: aggregate._min.temperatureC,
