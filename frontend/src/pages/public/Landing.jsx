@@ -88,12 +88,17 @@ export default function Landing() {
                 Get Started
                 <ArrowRight size={18} />
               </Link>
-              <button className="inline-flex items-center gap-3 px-6 py-3.5 rounded-xl text-sm font-semibold text-green-700 border-2 border-green-700 hover:bg-green-50 transition-all active:scale-[0.97]">
+              <a
+                href="https://youtu.be/zd4ncK9Cpe0"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-3 px-6 py-3.5 rounded-xl text-sm font-semibold text-green-700 border-2 border-green-700 hover:bg-green-50 transition-all active:scale-[0.97]"
+              >
                 <span className="w-7 h-7 rounded-full bg-green-700 flex items-center justify-center">
                   <Play size={12} className="text-white fill-white" />
                 </span>
                 Watch Demo
-              </button>
+              </a>
             </motion.div>
           </div>
         </div>
